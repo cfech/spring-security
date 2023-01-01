@@ -82,3 +82,61 @@ spring.security.user.password=testing
 
 - optional in this setup as spring scans components in THIS and sub packages, however if we split our app out into a package outside springsecruitybasic then would need to annotate
 
+
+
+# Section 2 #
+
+## 17 Default Spring Security Configuration ##
+- spring security protects all paths by default 
+- this is configured in the ```defaultSecurityFilterChain``` bean
+
+
+![default chain](./images/default-securit-filter-chain.png)
+
+- ```http.authorizeRequests().anyRequest().authenticated();``` - says authorize any request made to the backend 
+
+- from the comments 
+
+```
+The default configuration for web security. It relies on Spring Security's content-negotiation strategy to determine what sort of authentication to use. ** If the user specifies their own SecurityFilterChain bean, this will back-off completely and the users should specify all the bits that they want to configure as part of the custom security configuration **.
+```
+- if we create a bean of securityFilter chain then our custom auth will be taking place
+
+
+## 18 Adding Custom Authentication Configuration ##
+- can permit all or choose which paths need authentication
+
+- see ./02_section/sprinsecuritysec2/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+## 19 Denying All Requests ##
+- could deny all if they want
+- could do this to either test security, go through updates or turn off the services for a period of time 
+
+![deny-all](./images/deny-all.png)
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests().anyRequest().denyAll();
+        http.formLogin();
+        http.httpBasic();
+        return http.build();
+    }
+```
+
+## 20 Allowing All Requests ##
+
+- could allow all requests
+- could be done for development environments via conditional beans 
+
+![allow-all](./images/permit-all.png)
+
+```
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests().anyRequest().permitAll();
+        http.formLogin();
+        http.httpBasic();
+        return http.build();
+    }
+```
