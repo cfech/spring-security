@@ -140,3 +140,18 @@ The default configuration for web security. It relies on Spring Security's conte
         return http.build();
     }
 ```
+
+# Section 3 #
+## 22 Approach 1 Configuring users using inMemoryUserDetailsManager ##
+- not for production
+- can define multiple users along with their authorities with the help fo ```inMemoryUserDetailsManager``` and ```UserDetails```
+- use the ```withDefaultPasswordEncoder()``` method, this method is deprecated
+
+![approach1](./images/configuring-users-approach-1.png)
+
+
+
+## 23 Approach 2 Configuring users using inMemoryUserDetailsManager ##
+- not for production
+
+![approach 2](./images/in-memory-user-approach-2.png)
