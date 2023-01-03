@@ -439,3 +439,41 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 
 
 # Section 4 #
+
+
+## 35 How are passwords validated in spring security by default ##
+- default password encoder uses plain text
+![password encoding](./images/how-passwords-are-validated.png)
+
+- ```AbstractUserDetailsAuthenticationProvider``` - ```authenticate()``` method 
+- runs some ```preAuthenticationChecks()``` such as checking for disabled, expired etc
+- then runs ```DaoAuthenticationProvider``` - ```additionalAuthenticationChecks()```
+   - ```additionalAuthenticationChecks()``` calls the ```matches()``` method defined in every password encoder 
+   - ```matches``` takes in the password the user typed and the password loaded from the database
+   - if passwords match you are authenticated
+   - if not ```BadCredentialsException``` is thrown
+
+### NoOpPasswordEncoder ###
+- default password encoder
+- doesn't actually encode anything
+- stores passwords in plain text
+- not for production
+
+
+## 36 Encoding vs Encryption vs Hashing part 1 ##
+![e-e-h](./images/encoding-vs-encryption-vs-hashing.png)
+
+## 37 Encoding vs Encryption vs Hashing part 2 ##
+![e-e-h-2](./images/e-e-h-2.png)
+
+## 38 How to validate passwords with hashing and password encoders ##
+![validating with hashing](./images/how-passwords-are-validated.png)
+- password encoders take care of comparing hash strings
+
+## 39 PasswordEncoder Interface ##
+- includes:
+1. encode
+2. matches
+3. upgradeEncoding
+
+![password encoder interface](./images/password-encoder-interface.png)
