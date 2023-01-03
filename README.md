@@ -5,7 +5,7 @@
 [Course github](https://github.com/eazybytes/springsecurity6)
 
 
-# Section 1 #
+# Section 1 Getting Started #
 
 ## Creating spring projects ##
 can create a spring project at https://start.spring.io/
@@ -118,7 +118,7 @@ spring.security.user.password=testing
 
 
 
-# Section 2 #
+# Section 2 Default Security Configurations #
 
 ## 17 Default Spring Security Configuration ##
 - spring security protects all paths by default 
@@ -175,7 +175,7 @@ The default configuration for web security. It relies on Spring Security's conte
     }
 ```
 
-# Section 3 #
+# Section 3 Defining and Managing Users #
 ## 22 Approach 1 Configuring users using inMemoryUserDetailsManager ##
 - not for production
 - can define multiple users along with their authorities with the help fo ```inMemoryUserDetailsManager``` and ```UserDetails```
@@ -438,7 +438,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 ![s2](./images/custom-sequence-2.png)
 
 
-# Section 4 #
+# Section 4 Password Management and Encoders#
 
 
 ## 35 How are passwords validated in spring security by default ##
@@ -472,8 +472,101 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 
 ## 39 PasswordEncoder Interface ##
 - includes:
-1. encode
-2. matches
-3. upgradeEncoding
+1. encode - will put password through corresponding hash/encryption (even it that is none)
+2. matches (true if the same, ie good login)
+3. upgradeEncoding - can encode your password two times, default is false
 
 ![password encoder interface](./images/password-encoder-interface.png)
+
+## 40 Password Encoder Implementation Classes part 1 ##
+
+- not for production
+
+### NoOpPasswordEncoder ###
+- default password encoder
+- doesn't actually encode anything
+- stores passwords in plain text
+- not for production, only demo/dev
+
+### StandardPasswordEncoder ###
+- not for production
+- deprecated
+- only implemented to support legacy applications 
+- sha-256, 1024 iterations and random 8-byte salt
+
+### Pbkdf2PasswordEncoder ###
+- can use but not recommended
+- has become less secure over last few years
+- susceptible to brute force attacks
+
+## 41 Password Encoder Implementation Classes part 2 ##
+
+- can use in production
+- should have strong password requirements, ie: 8 Chars, letters, numbers and special characters
+- strong password requirements make brute force nearly impossible with any of the following 3 passwordEncoders
+
+
+### BCryptPasswordEncoder ###
+- uses Bcrypt hashing algorithm
+- continually updated based on hardware and best practices
+- utilizes more cpu/resources
+- less susceptible to brute force
+- secure
+- most commonly used 
+
+
+### SCryptPasswordEncoder ###
+- advance version of ```BCryptPasswordEncoder```
+- uses both cpu and ram
+- make brute force tougher due to resource restriction
+- more secure
+### Argon2PasswordEncoder ###
+- newest based on latest hashing algorithm 
+- uses both cpu, ram and multiple threads
+- make brute force tougher due to resource restriction
+- also can slow down our application due to resource needs
+- most secure
+
+## 42 Register New User With ByCrypt Password Encoder ##
+- create a passwordEncoder bean with the ```BCryptPasswordEncoder```
+
+```
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+
+      return new BCryptPasswordEncoder();
+    }
+```
+
+- has passwords now when the creating an new user ex: 04_section/sprinsecuritysec4/src/main/java/com/eazybytes/controller/LoginController.java
+
+- by default does 10 rounds of hashing but this can be configured
+- could change options if wanted to utilizing different constructors of ```BCryptPasswordEncoder```
+- min rounds is 4, max is 31, default is 10
+- could pass a salt if we had one 
+
+- from javadoc of ```BCryptPasswordEncoder```
+
+```
+Implementation of PasswordEncoder that uses the BCrypt strong hashing function. Clients can optionally supply a "version" ($2a, $2b, $2y) and a "strength" (a.k.a. log rounds in BCrypt) and a SecureRandom instance. The larger the strength parameter the more work will have to be done (exponentially) to hash the passwords. The default value is 10.
+```
+
+- see difference ins stored passwords
+
+![store pwd](./images/password_with_bcrypt.png)
+
+- plain text passwords will no longer with when ```BCryptPasswordEncoder``` is enabled
+- ```BCryptPasswordEncoder``` knows this is not a BCrypt encoded password
+
+- will give error in console
+
+```
+2023-01-03T17:37:21.975-05:00  WARN 54197 --- [nio-8888-exec-7] o.s.s.c.bcrypt.BCryptPasswordEncoder     : Encoded password does not look like BCrypt
+```
+
+## 43 Login With ByCrypt Password Encoder ##
+- if using the default ```DaoAuthenticationProvider``` then no additional configuration is needed. ```DaoAuthenticationProvider```  will handle calling functions for password comparison 
+
+- could define your own password encoder by implementing PasswordEncoder interface but not recommended
+
+# Section 5 Authentication Providers #
