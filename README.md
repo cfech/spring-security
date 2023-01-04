@@ -377,7 +377,7 @@ spring.jpa.properties.hibernate.format_sql=true
 
 - Spring boot creates an object of type data source in memory when we add jbdc information to class path and application properties
 
-- not sure if you can have multiple UserDetailsManagers
+- can have multiple ```UserDetailsManagers``` if have multiple ```AuthenticationProviders```
 
 
 ## 31 Creating Custom Authentication Tables ##
@@ -570,3 +570,50 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 - could define your own password encoder by implementing PasswordEncoder interface but not recommended
 
 # Section 5 Authentication Providers #
+
+## 44 Why create our own authentication provider ##
+- the default authentication provider is ```DaoAuthenticationProvider```
+- this is a flexible class that allows us to change ```UserDetailsService``` as well as ```PasswordEncoder```, however it does not support all use cases
+- we may want to create our own authentication logic ie: only allowed age or countries
+- may want multiple authentication providers
+
+![custom ap](./images/why-custom-authentication-provider.png)
+
+## 45 Authentication Provider methods ##
+- ```authenticate()``` method actually kicks off the authenticate process
+   - returns an authentication token with a user that is either authenticated or not
+- ```supports()``` - tells which type of authentication objects are supported
+   - called inside the ```ProviderManager```, which implements the ```AuthenticationManager``` interface, to check if the current authenticationProvider supports the type of authenticationToken that is passed in
+
+- ```DaoAuthenticationProvider``` supports ``````UsernamePasswordAuthenticationToken``` out of the box
+
+- other auth tokens provided by spring
+1. ```TestingAuthenticationToken```
+2. ```AnonymousAuthenticationToken```
+3. ```RememberMeAuthenticationToken```
+
+![auth provider details](./images/auth-provider-details-1.png)
+
+## 46 Implementing Custom Authentication Provider ##
+- since we created our own custom AuthenticationProvider, we no longer need a userDetailsService. If wa wanted to make our custom AuthenticationProvider depend on a userDetailsService, like the default ```DaoAuthenticationProvider``` then we could use on, but not necessary as this logic is now in our ```EazyBankUsernamePwdAuthenticationProvider```, which is talking directly to the CrudRepository via DI
+
+
+- example : sprinsecuritysec5/src/main/java/com/eazybytes/config/EazyBankUsernamePwdAuthenticationProvider.java
+
+## 47 Testing our Custom Authentication Provider ##
+- ```EazyBankUsernamePwdAuthenticationProvider.authenticate()``` is called by the spring security ```ProviderManager```
+- after authentication is completed based on logic in the ```authenticate()``` method  the ```ProviderManager``` does some cleanup including deleting the credentials we were comparing against
+- can also have an event published (an use this to send a push notification/email)
+
+## 48 Spring Security Sequence Flow with Custom AuthenticationProvider ##
+
+```Provider Manager``` implements ```AuthenticationManager```, they are interchangeable
+
+![flow with custom authentication provider](./images/flow-with-custom-authentication-provider.png)
+
+- SpringSecurityFilter and ```AuthenticationManager``` do their own job, we do not override those
+- we changed the authenticationProvider and its methods (which are called by the ```AuthenticationManager```), incorporating the database call into our custom ```EazyBankUsernamePwdAuthenticationProvider```. Since we were no longer user the default ```DaoAuthenticationProvider```, we did not need a ```UserDetailsService```/ ```UserDetailsManager```
+
+- Also overrode the ```PasswordEncoder``` to use the ```BCryptPasswordEncoder```
+
+![flow with custom authentication provider](./images/flow-with-custom-authentication-provider-simple.png)
