@@ -617,3 +617,351 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 - Also overrode the ```PasswordEncoder``` to use the ```BCryptPasswordEncoder```
 
 ![flow with custom authentication provider](./images/flow-with-custom-authentication-provider-simple.png)
+
+
+# Section 6 #
+
+- Starting in this section we will start using the Angular UI to talk to our backend
+
+## 49 Setting up Separate UI ## ##
+- directions for setting up are ./angular_ui/bank-app-ui/README.md
+
+## 51 Creating new DB for schema ##
+
+- run the following schema 
+
+```
+use eazybank;
+
+drop table `users`;
+drop table `authorities`;
+drop table `customer`;
+drop table accounts;
+
+CREATE TABLE `customer` (
+  `customer_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `mobile_number` varchar(20) NOT NULL,
+  `pwd` varchar(500) NOT NULL,
+  `role` varchar(100) NOT NULL,
+  `create_dt` date DEFAULT NULL,
+  PRIMARY KEY (`customer_id`)
+);
+
+INSERT INTO `customer` (`name`,`email`,`mobile_number`, `pwd`, `role`,`create_dt`)
+ VALUES ('Happy','happy@example.com','9876548337', '$2y$12$oRRbkNfwuR8ug4MlzH5FOeui.//1mkd.RsOAJMbykTSupVy.x/vb2', 'admin',CURDATE());
+
+CREATE TABLE `accounts` (
+  `customer_id` int NOT NULL,
+  `account_number` int NOT NULL,
+  `account_type` varchar(100) NOT NULL,
+  `branch_address` varchar(200) NOT NULL,
+  `create_dt` date DEFAULT NULL,
+  PRIMARY KEY (`account_number`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `customer_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON DELETE CASCADE
+);
+
+INSERT INTO `accounts` (`customer_id`, `account_number`, `account_type`, `branch_address`, `create_dt`)
+ VALUES (1, 18657645, 'Savings', '123 Main Street, New York', CURDATE());
+
+CREATE TABLE `account_transactions` (
+  `transaction_id` varchar(200) NOT NULL,
+  `account_number` int NOT NULL,
+  `customer_id` int NOT NULL,
+  `transaction_dt` date NOT NULL,
+  `transaction_summary` varchar(200) NOT NULL,
+  `transaction_type` varchar(100) NOT NULL,
+  `transaction_amt` int NOT NULL,
+  `closing_balance` int NOT NULL,
+  `create_dt` date DEFAULT NULL,
+  PRIMARY KEY (`transaction_id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `account_number` (`account_number`),
+  CONSTRAINT `accounts_ibfk_2` FOREIGN KEY (`account_number`) REFERENCES `accounts` (`account_number`) ON DELETE CASCADE,
+  CONSTRAINT `acct_user_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON DELETE CASCADE
+);
+
+
+
+INSERT INTO `account_transactions` (`transaction_id`, `account_number`, `customer_id`, `transaction_dt`, `transaction_summary`, `transaction_type`,`transaction_amt`,
+`closing_balance`, `create_dt`)  VALUES (UUID(), 18657645, 1, "2022-12-24", 'Coffee Shop', 'Withdrawal', 30,34500, "2022-12-24");
+
+INSERT INTO `account_transactions` (`transaction_id`, `account_number`, `customer_id`, `transaction_dt`, `transaction_summary`, `transaction_type`,`transaction_amt`,
+`closing_balance`, `create_dt`)  VALUES (UUID(), 18657645, 1, "2022-12-25", 'Uber', 'Withdrawal', 100,34400,"2022-12-25");
+
+INSERT INTO `account_transactions` (`transaction_id`, `account_number`, `customer_id`, `transaction_dt`, `transaction_summary`, `transaction_type`,`transaction_amt`,
+`closing_balance`, `create_dt`)  VALUES (UUID(), 18657645, 1, "2022-12-26", 'Self Deposit', 'Deposit', 500,34900,"2022-12-26");
+
+INSERT INTO `account_transactions` (`transaction_id`, `account_number`, `customer_id`, `transaction_dt`, `transaction_summary`, `transaction_type`,`transaction_amt`,
+`closing_balance`, `create_dt`)  VALUES (UUID(), 18657645, 1, "2022-12-27", 'Ebay', 'Withdrawal', 600,34300,"2022-12-27");
+
+INSERT INTO `account_transactions` (`transaction_id`, `account_number`, `customer_id`, `transaction_dt`, `transaction_summary`, `transaction_type`,`transaction_amt`,
+`closing_balance`, `create_dt`)  VALUES (UUID(), 18657645, 1, "2022-12-28", 'OnlineTransfer', 'Deposit', 700,35000,"2022-12-28");
+
+INSERT INTO `account_transactions` (`transaction_id`, `account_number`, `customer_id`, `transaction_dt`, `transaction_summary`, `transaction_type`,`transaction_amt`,
+`closing_balance`, `create_dt`)  VALUES (UUID(), 18657645, 1, "2022-12-29", 'Amazon.com', 'Withdrawal', 100,34900,"2022-12-29");
+
+
+CREATE TABLE `loans` (
+  `loan_number` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `start_dt` date NOT NULL,
+  `loan_type` varchar(100) NOT NULL,
+  `total_loan` int NOT NULL,
+  `amount_paid` int NOT NULL,
+  `outstanding_amount` int NOT NULL,
+  `create_dt` date DEFAULT NULL,
+  PRIMARY KEY (`loan_number`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `loan_customer_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON DELETE CASCADE
+);
+
+INSERT INTO `loans` ( `customer_id`, `start_dt`, `loan_type`, `total_loan`, `amount_paid`, `outstanding_amount`, `create_dt`)
+ VALUES ( 1, '2020-10-13', 'Home', 200000, 50000, 150000, '2020-10-13');
+
+INSERT INTO `loans` ( `customer_id`, `start_dt`, `loan_type`, `total_loan`, `amount_paid`, `outstanding_amount`, `create_dt`)
+ VALUES ( 1, '2020-06-06', 'Vehicle', 40000, 10000, 30000, '2020-06-06');
+
+INSERT INTO `loans` ( `customer_id`, `start_dt`, `loan_type`, `total_loan`, `amount_paid`, `outstanding_amount`, `create_dt`)
+ VALUES ( 1, '2018-02-14', 'Home', 50000, 10000, 40000, '2018-02-14');
+
+INSERT INTO `loans` ( `customer_id`, `start_dt`, `loan_type`, `total_loan`, `amount_paid`, `outstanding_amount`, `create_dt`)
+ VALUES ( 1, '2018-02-14', 'Personal', 10000, 3500, 6500, '2018-02-14');
+
+CREATE TABLE `cards` (
+  `card_id` int NOT NULL AUTO_INCREMENT,
+  `card_number` varchar(100) NOT NULL,
+  `customer_id` int NOT NULL,
+  `card_type` varchar(100) NOT NULL,
+  `total_limit` int NOT NULL,
+  `amount_used` int NOT NULL,
+  `available_amount` int NOT NULL,
+  `create_dt` date DEFAULT NULL,
+  PRIMARY KEY (`card_id`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `card_customer_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON DELETE CASCADE
+);
+
+INSERT INTO `cards` (`card_number`, `customer_id`, `card_type`, `total_limit`, `amount_used`, `available_amount`, `create_dt`)
+ VALUES ('4565XXXX4656', 1, 'Credit', 10000, 500, 9500, "2022-12-31");
+
+INSERT INTO `cards` (`card_number`, `customer_id`, `card_type`, `total_limit`, `amount_used`, `available_amount`, `create_dt`)
+ VALUES ('3455XXXX8673', 1, 'Credit', 7500, 600, 6900, "2022-12-31");
+
+INSERT INTO `cards` (`card_number`, `customer_id`, `card_type`, `total_limit`, `amount_used`, `available_amount`, `create_dt`)
+ VALUES ('2359XXXX9346', 1, 'Credit', 20000, 4000, 16000, "2022-12-31");
+
+CREATE TABLE `notice_details` (
+  `notice_id` int NOT NULL AUTO_INCREMENT,
+  `notice_summary` varchar(200) NOT NULL,
+  `notice_details` varchar(500) NOT NULL,
+  `notic_beg_dt` date NOT NULL,
+  `notic_end_dt` date DEFAULT NULL,
+  `create_dt` date DEFAULT NULL,
+  `update_dt` date DEFAULT NULL,
+  PRIMARY KEY (`notice_id`)
+);
+
+INSERT INTO `notice_details` ( `notice_summary`, `notice_details`, `notic_beg_dt`, `notic_end_dt`, `create_dt`, `update_dt`)
+VALUES ('Home Loan Interest rates reduced', 'Home loan interest rates are reduced as per the goverment guidelines. The updated rates will be effective immediately',
+CURDATE() - INTERVAL 30 DAY, CURDATE() + INTERVAL 30 DAY, CURDATE(), null);
+
+INSERT INTO `notice_details` ( `notice_summary`, `notice_details`, `notic_beg_dt`, `notic_end_dt`, `create_dt`, `update_dt`)
+VALUES ('Net Banking Offers', 'Customers who will opt for Internet banking while opening a saving account will get a $50 amazon voucher',
+CURDATE() - INTERVAL 30 DAY, CURDATE() + INTERVAL 30 DAY, CURDATE(), null);
+
+INSERT INTO `notice_details` ( `notice_summary`, `notice_details`, `notic_beg_dt`, `notic_end_dt`, `create_dt`, `update_dt`)
+VALUES ('Mobile App Downtime', 'The mobile application of the EazyBank will be down from 2AM-5AM on 12/05/2020 due to maintenance activities',
+CURDATE() - INTERVAL 30 DAY, CURDATE() + INTERVAL 30 DAY, CURDATE(), null);
+
+INSERT INTO `notice_details` ( `notice_summary`, `notice_details`, `notic_beg_dt`, `notic_end_dt`, `create_dt`, `update_dt`)
+VALUES ('E Auction notice', 'There will be a e-auction on 12/08/2020 on the Bank website for all the stubborn arrears.Interested parties can participate in the e-auction',
+CURDATE() - INTERVAL 30 DAY, CURDATE() + INTERVAL 30 DAY, CURDATE(), null);
+
+INSERT INTO `notice_details` ( `notice_summary`, `notice_details`, `notic_beg_dt`, `notic_end_dt`, `create_dt`, `update_dt`)
+VALUES ('Launch of Millennia Cards', 'Millennia Credit Cards are launched for the premium customers of EazyBank. With these cards, you will get 5% cashback for each purchase',
+CURDATE() - INTERVAL 30 DAY, CURDATE() + INTERVAL 30 DAY, CURDATE(), null);
+
+INSERT INTO `notice_details` ( `notice_summary`, `notice_details`, `notic_beg_dt`, `notic_end_dt`, `create_dt`, `update_dt`)
+VALUES ('COVID-19 Insurance', 'EazyBank launched an insurance policy which will cover COVID-19 expenses. Please reach out to the branch for more details',
+CURDATE() - INTERVAL 30 DAY, CURDATE() + INTERVAL 30 DAY, CURDATE(), null);
+
+CREATE TABLE `contact_messages` (
+  `contact_id` varchar(50) NOT NULL,
+  `contact_name` varchar(50) NOT NULL,
+  `contact_email` varchar(100) NOT NULL,
+  `subject` varchar(500) NOT NULL,
+  `message` varchar(2000) NOT NULL,
+  `create_dt` date DEFAULT NULL,
+  PRIMARY KEY (`contact_id`)
+);
+```
+
+- other scripts to create account number for other users
+```
+INSERT INTO `accounts` (`customer_id`, `account_number`, `account_type`, `branch_address`, `create_dt`)
+VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
+```
+
+
+## 53 creating a new user with postman ##
+
+- can post to ```localhost:8888/register```
+```
+{
+    "name": "John Doe",
+    "email": "1@1.com",
+    "mobileNumber": "1234567890",
+    "pwd": "12345",
+    "role": "user"
+}
+```
+
+- there is a sign up link in the UI but it is not configured
+
+## 54 Cors Error ##
+- Cross Origin Resource Sharing
+- when making requests across origin
+
+![](./images/cors-error.png)
+
+## 55 Introduction to Cors ##
+![](./images/what-is-cors.png)
+- have to configure if we want to talk cross origin
+- default is to block this 
+
+## 56 Options to Fix Cors ##
+![](./images/cors-solution-1.png)
+
+- The browser sends a preflight request to the server and this is where origin data is communicated
+- can use the ```@CrossOrigin``` annotation
+- could explicitly configure it to an endpoint or to '*'
+- It may not be feasible to do this for every single controller in an application
+
+- can configure globally using spring security instead inside the defaultSecurityChain
+
+![](./images/core-solution-2.png)
+
+## 57 Fixing Cors Using Spring Security ##
+- configuration is fed into HttpSecurity 
+- can see configuration: sprinsecuritysec6/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+
+## 58 Demo of CSRF Protection from Spring Security ## 
+- Cross Site Request Forgery
+- Spring security blocks updates to post/put operations that update data by default 
+- could turn it off with ```http().csrf().disable()``` , not for production
+
+- if this is on and not configured and posts will get a 401, have to explicitly say who is allowed to post/put
+
+## 59 Example CSRF Attack ##
+- also known as XSRF
+![](./images/csrf-attack.png)
+![](./images/csrf-attack-2.png)
+
+## 60 Solutions for CSRF Attacks ##
+- using a secondary secure CSRF token that is injected in a header by the app, to ensure th request is not being forged
+![](./images/csrf-solution.png)
+![](./images/csrf-solution-2.png)
+
+## 61 Ignoring CSRF Protection For Public API endpoints ## ##
+- can use to expose certain public endpoints beyond csrf protection
+
+```
+csrf().ignoringRequestMatchers("/contact", "/register")
+```
+- use to be ```ignoreAntMatchers()```
+## 62 Implementing CSRF Token Solution ##
+- by default spring ```CookieCsrfTokenRepository``` will create a token with the name ```XSRF-TOKEN```
+
+### Part 1 - Backend ###
+- sprinsecuritysec6/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+```
+...
+//-------------------- CSRF--------------------------
+                //tell spring security these are public apis, but will protect all other endpoints
+                //csrf process against malicious posts/puts so don't need notices as it only gets
+                .csrf().ignoringRequestMatchers("/contact", "/register")
+
+                // create a CSRF token and send it as a cookie,  and with withHttpOnlyFalse(), it allows the UI to read the cookie via JavaScript
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                //filter responsible for injecting the cookie
+                .and().addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+
+...
+```
+
+- due to updates in spring security have to include a once pre request filter in order to continually append the CSRF cookie in the request/response headers
+
+### Part 2 - Frontend ###
+- have to handle reading and return the cookie in javascript on the frontend
+- angular_ui/bank-app-ui/src/app/components/login/login.component.ts
+
+```
+validateUser(loginForm: NgForm) {
+    this.loginService.validateLoginDetails(this.model).subscribe(
+      responseData => {
+        this.model = <any> responseData.body;
+        this.model.authStatus = 'AUTH';
+        window.sessionStorage.setItem("userdetails",JSON.stringify(this.model));
+        // get the cookie and store is in session storage
+        let xsrf = getCookie('XSRF-TOKEN')!;
+        window.sessionStorage.setItem("XSRF-TOKEN",xsrf);
+        this.router.navigate(['dashboard']);
+      });
+
+  }
+```
+- retrieve the cookie and set it in session storage 
+- angular_ui/bank-app-ui/src/app/interceptors/app.request.interceptor.ts
+```
+    //get the token from session storage and put it in the headers
+    let xsrf = sessionStorage.getItem('XSRF-TOKEN');
+    if(xsrf){
+      httpHeaders = httpHeaders.append('X-XSRF-TOKEN', xsrf);  
+    }
+```
+
+### Basic Authentication ##
+- with this configuration we now go through the ```BasicAuthenticationFilter``` as we post authentication to the ```/user``` endpoint
+- the authentication information is encoded on a ```Authorization Basic:``` header
+- this is not recommend for production apps as the username and password are not encrypted on the header, they only exist in as base 64
+
+# Section 7 Authorization #
+## 64 Authentication vs Authorization ##
+![](./images/authentication_vs_authorization.png)
+
+## 65 How Authorities are Stored in Spring Security ##
+![](./images/authorities_vs_roles.png)
+![](./images/how_are_authorites_stored.png)
+- authorities are passed to ```UsernamePasswordAuthenticationToken``` upon creation as an unmodifiable list
+- authorities and roles are very similar and used to create ```GrantedAuthorities```
+
+
+## 66 Creating new table Authorities to store multiple roles or authorities ##
+- create an authorities table and use the id as a foreign key for the user
+
+
+## 67 Backend Changes To Load Authorities ##
+
+## 68 and 69 Configure Authorities Inside App Using Spring Security ## 
+
+## 70 Authority vs Role in Spring Security ##
+
+## 71 and 72 Configuring Roles Authorization Inside App using Spring Security ##
+
+
+# Section 8 Custom Spring Filters #
+
+
+# Section 9 Authentication with JWT #
+
+# Section 10 Method Level Security #
+
+# Section 11 Deep Dive of Oauth2 and OpenID Connect ##
+
+# Section 12 Implementing OAuth2 Using Spring Security #
+
+# Section 13 Implementing OAuth2 with Keycloak #
