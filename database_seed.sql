@@ -1,3 +1,8 @@
+
+# Starts at section 6 Video 51
+# Modified slightly to cooperate with containerized db
+CREATE DATABASE eazybank
+
 use eazybank;
 
 drop table `users`;
@@ -170,7 +175,7 @@ CREATE TABLE `contact_messages` (
 );
 
 
-
+# For Section 7 Video 66
 
 CREATE TABLE `authorities` (
   `id` int NOT NULL AUTO_INCREMENT,

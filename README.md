@@ -926,6 +926,7 @@ validateUser(loginForm: NgForm) {
 
 ### Basic Authentication ##
 - with this configuration we now go through the ```BasicAuthenticationFilter``` as we post authentication to the ```/user``` endpoint
+- the ```BasicAuthenticationFilter``` calls the ```ProviderManager``` which calls the ```EazyBankUsernamePwdAuthenticationProvider.autheenticat()``` method, this fetches the user and does the authentication by calling ```PasswordEncoder.matches()``` method, if it does match thn the ```UsernamePasswordAuthenticationToken``` is called constructor which creates the auth token and authenticated to true
 - the authentication information is encoded on a ```Authorization Basic:``` header
 - this is not recommend for production apps as the username and password are not encrypted on the header, they only exist in as base 64
 
@@ -942,18 +943,88 @@ validateUser(loginForm: NgForm) {
 
 ## 66 Creating new table Authorities to store multiple roles or authorities ##
 - create an authorities table and use the id as a foreign key for the user
-
+- see ./database_seed.sql
 
 ## 67 Backend Changes To Load Authorities ##
+- have to create a new entity authority to account for new table in db
+- have to map authority model, manyToOne and customer model
+- this will pull authorities based on primary/foreign key from the db and map them to the customer object upon request of the customer
+
 
 ## 68 and 69 Configure Authorities Inside App Using Spring Security ## 
 
+- sprinsecuritysec7/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+![](./images/configuring_authorites.png)
+- ```hasAuthority``` - have to have the exact authority
+- ```hasAnyAuthority```, if they have any of the acceptable ones
+- if neither of above options work use ```access()``` which allows us to configure using spring expression language
+
+
+![](./images/config_authorities.png)
+- can invoke after ```requestMatchers```
+- ```requestMatchers``` replaced ```antMatchers``` in spring v 3
+
+- see example 
+
+```
+          http.
+          ...     
+                .authorizeHttpRequests()
+
+                // performing RBAC with authorities
+                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+                .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT","VIEWBALANCE")
+                .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+                //secure these paths so only authenticated users can access
+                .requestMatchers( "/user").authenticated()
+                //allow anyone to see this
+                .requestMatchers("/notices", "/contact", "/register").permitAll();
+      ...
+        return http.build();
+
+```
+
+### Session ManageMent ###
+- as of spring boot 3 and security 6 we now need to explicitly tell spring to always create new sessions 
+- this will create a new session each time the user logs in
+
+```
+                .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+```
+
 ## 70 Authority vs Role in Spring Security ##
 
-## 71 and 72 Configuring Roles Authorization Inside App using Spring Security ##
+![](./images/authorities_vs_roles.png)
+- authority is one individual privilege (fine grained)
+- role is a group of privileges/actions (course grained)
+- roles also us ```GrantedAuthority``` and ```SimpleGrantedAuthority```
+- when using roles it should awalys start with the ```ROLE_``` prefix as to differentiate between authorities and roles
 
+## 71 and 72 Configuring Roles Authorization Inside App using Spring Security ##
+- sprinsecuritysec7/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+![](./images/role_configuration.png)
+- ```hasRole``` - have to have the exact authority
+- ```hasAnyRole```, if they have any of the acceptable ones
+- if neither of above options work use ```access()``` which allows us to configure using spring expression language
+- DO NOT USE THE ROLE PREFIX IN CODE, spring adds the prefix value
+
+ex: 
+![](./images/role_example.png)
+
+- new sequence flow with roles 
+
+![](./images/role_sequence_flow.png)
+
+### Other methods ###
+- could use ```hasIPAddress``` to really secure the app (may have bee deprecated in version 3)
 
 # Section 8 Custom Spring Filters #
+
+## 73 Spring Filters and Simple Use Cases ##
+![](./images/serverlets-vs-filters.png)
 
 
 # Section 9 Authentication with JWT #
