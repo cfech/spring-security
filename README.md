@@ -49,7 +49,7 @@ and exclude from the build
 
 ```
 
-## Spring Security Out Of The Box ##
+## Spring Security Out of the Box ##
 - as soon as you add the spring security dependency, without doing anything it will start intercepting calls 
 - will show a login screen, user: ```user```, password is printed in the console
 
@@ -191,7 +191,7 @@ The default configuration for web security. It relies on Spring Security's conte
 
 ![approach 2](./images/in-memory-user-approach-2.png)
 
-## 24 Understanding User Management Interfaces And Classes ## 
+## 24 Understanding User Management Interfaces and Classes ## 
 
 ![user management](./images/user-management-classes-and-interface.png)
 
@@ -203,7 +203,7 @@ The default configuration for web security. It relies on Spring Security's conte
 - When you return a new class of type ```...UserDetailsManager```, the ```loadUserByUsername``` method is called
   - this method returns ```UserDetails``` which implements ```UserDetailsManager ``` which extends ```UserDetailsService```
 
-## 25 Deep Dive Of UserDetails Interface And User Class ##
+## 25 Deep Dive of UserDetails Interface and User Class ##
 - holds methods for 
   1. getAuthorities()
   2. getPassword()
@@ -223,7 +223,7 @@ The default configuration for web security. It relies on Spring Security's conte
 - ```AuthenticationProvider``` will convert the userDetails into the Authentication Token, after fetched from the database and authenticated
 - this is done by default in the ```AbstractUserDetailsAuthenticationProvider.java```,  ```authenticate``` method, if authenticated then it called the ```createSuccessAuthentication``` method witch takes in an auth token, user and returns back a populated authentication token
 
-## 26 Deep Dive Of UserDetailsService And UserDetailsManager ##
+## 26 Deep Dive of UserDetailsService and UserDetailsManager ##
 - ```UserDetailsService```, holds the method ```loadUserByUsername``` which loads the user from the database
 - only username is loaded, not the password, which we dont want to move over the network
 - ```UserDetailsService```is extended by the ```UserDetailsManager``` which gives the ability to perform CRUD operations on users
@@ -384,7 +384,7 @@ spring.jpa.properties.hibernate.format_sql=true
 - in schema above
 - will have to create your own JPA entity, wont be able to sue the default one
 
-## 32 Creating JPA Entity And Repo For New Table ##
+## 32 Creating JPA Entity and Repo For New Table ##
 - have to create a repository
 ```
 sprinsecuritysec3/src/main/java/com/eazybytes/repository/CustomerRepository.java
@@ -409,7 +409,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 @EnableWebSecurity
 ```
 
-## 33 Create Custom Implementation Of UserDetailsService ##
+## 33 Create Custom Implementation of UserDetailsService ##
 - if we are using our own database setup, we must override the default ```UserDetailsService``` and write logic for loading the user in the ```loadUserByUsername``` method
 
 - sprinsecuritysec3/src/main/java/com/eazybytes/config/EazyBankUserDetails.java
@@ -438,7 +438,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 ![s2](./images/custom-sequence-2.png)
 
 
-# Section 4 Password Management And Encoders #
+# Section 4 Password Management and Encoders #
 
 
 ## 35 How Are Passwords Validated In Spring Security By Default ##
@@ -466,7 +466,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 ## 37 Encoding vs Encryption vs Hashing Part 2 ##
 ![e-e-h-2](./images/e-e-h-2.png)
 
-## 38 How to Validate Passwords With Hashing And Password Encoders ##
+## 38 How to Validate Passwords With Hashing and Password Encoders ##
 ![validating with hashing](./images/how-passwords-are-validated.png)
 - password encoders take care of comparing hash strings
 
@@ -952,7 +952,7 @@ validateUser(loginForm: NgForm) {
 - create an authorities table and use the id as a foreign key for the user
 - see ./database_seed.sql
 
-## 67 Backend Changes To Load Authorities ##
+## 67 Backend Changes to Load Authorities ##
 - have to create a new entity ```Authority``` to account for new table in db
 - sprinsecuritysec7/src/main/java/com/eazybytes/model/Authority.java
 - have to map ```Authority``` model, ```@manyToOne``` to ```Customer``` model
@@ -1132,7 +1132,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 
 
 
-## 79 Generic Filter Bean And OncPerRequestFilter ##
+## 79 Generic Filter Bean and OncPerRequestFilter ##
 - other options for custom filters
 
 ### Generic Filter Bean ###
@@ -1162,9 +1162,9 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ![](./images/ant-matchers.png)
 ![](./images/regex-matchers.png)
 
-# Section 9 Authentication with JWT #
+# Section 9 Authentication With JWT #
 
-## 81 JSESSIONID And Issues With It ##
+## 81 JSESSIONID and Issues With It ##
 -  ```JSESSIONID``` - tell spring whether user is a valid logged in user
 - this is a simple token, good for what it does but wont help with communications between services
 - does not hold any user data
@@ -1203,7 +1203,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ![](./images/JWT-validation-2.png)
 - backend will regenerate the signature hash using it's secret and compare it to the received JWT to see if the JWT has been tampered with 
 
-## 85 Configuring App To Use JWTs ##
+## 85 Configuring App to Use JWTs ##
 - sprinsecuritysec9/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
 
 ### Dependencies ###
@@ -1301,17 +1301,77 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ## 90 Validating JWT Expiration ##
 - if JWT is expired the backend will throw an ```ExpiredJWT``` exception and the user should log back in
 
-![](./images/method-level-security.png)
+
 
 
 # Section 10 Method Level Security #
 
-## 91 Introduction To Method Level Security ##
+- compliments RBAC, does not replace 
 
-## 92 Details about Method Invocation Authorization ##
+## 91 Introduction to Method Level Security ##
+![](./images/method-level-security.png)
+![](./images/method-level-security-2.png)
+- method security must be enabled with ```@EnableMethodSecurity```, as it is disabled by default
+- allows for fine grained access control
+
+## 92 Details About Method Invocation Authorization ##
+![](./images/method-level-security-3.png)
+- accept spring expression language as well as role and authority methods
+
+![](./images/method-level-security-4.png)
+- post authorization is used to validate the data being returned from the method
+
+- ```PermissionElevator.hasPermission()``` allows much more fine grained authentication
+- spring uses spring [AOP](https://www.baeldung.com/spring-aop) at runtime to intercept method calls and ensure users have the correct permissions
+
+## 93 Method Level Security with PreAuthorize ##
+- allow spring expression language
+- most common to be used
+- exmaple sprinsecuritysec10/src/main/java/com/eazybytes/repository/LoanRepository.java
+
+```
+@PreAuthorize("hasRole('User')")
+```
 
 
-# Section 11 Deep Dive of Oauth2 and OpenID Connect ##
+## 94 Method Level Security with PostAuthorize ##
+- allow spring expression language
+- sprinsecuritysec10/src/main/java/com/eazybytes/controller/LoansController.java
+
+```
+@PostAuthorize("hasRole('USER')")
+```
+
+## 95 Filtering with Method Level Security ##
+![](./images/filter-authorization-1.png)
+![](./images/post-filter.png)
+
+- **this is not Spring Security Filter**
+- can filter the method call based on the parameters being passed in
+- ```filterObject```, the method input, should alway be of type ```Collection```
+- could say, get this collection but don't return where the userName = "test"
+
+
+
+## 96 PreFilter Annotation ##
+![](./images/filter-authorization-1.png)
+- for filtering parameters passed into a method
+
+- sprinsecuritysec10/src/main/java/com/eazybytes/controller/ContactController.java
+
+```
+ @PreFilter("filterObject.contactName != 'Test'")
+```
+## 97 PostFilter Annotation ##
+![](./images/post-filter.png)
+- for filtering returned values from a method 
+- sprinsecuritysec10/src/main/java/com/eazybytes/controller/ContactController.java
+
+```
+ @PostFilter("filterObject.contactName != 'Test'")
+```
+
+# Section 11 Deep Dive into Oauth2 and OpenID Connect ##
 
 # Section 12 Implementing OAuth2 Using Spring Security #
 
