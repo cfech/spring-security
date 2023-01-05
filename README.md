@@ -1566,9 +1566,12 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 
 # Section 12 Implementing OAuth2 Using Spring Security #
+- just took notes on this section - did not implement
 
 ## 111 Registering Client Details With Github ##
-- will use as OAuth2 ```Auth Server```
+- will use Github as OAuth2 ```Auth Server```
+
+- spring boot app will be the ```Client``` in this scenario, 
 
 ## 112 Using Github OAuth2 Server With Spring Boot ##
 
