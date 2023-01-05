@@ -1,9 +1,6 @@
 package com.eazybytes.config;
 
-import com.eazybytes.filter.AuthoritiesLoggingAfterFilter;
-import com.eazybytes.filter.LoggingAtAuthenticationFilter;
-import com.eazybytes.filter.CsrfCookieFilter;
-import com.eazybytes.filter.RequestValidationBeforeFilter;
+import com.eazybytes.filter.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +15,9 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @Slf4j
@@ -34,6 +33,8 @@ public class ProjectSecurityConfig {
             corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
             corsConfiguration.setAllowCredentials(true);
             corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+            // --- JWT --- must expose header or browser will not accept it due to cors
+            corsConfiguration.setExposedHeaders(List.of("Authorization"));
             corsConfiguration.setMaxAge(3800L);
 
             return corsConfiguration;
@@ -56,8 +57,12 @@ public class ProjectSecurityConfig {
         http.cors().configurationSource(corsConfigurationSource)
 
                 // ----------- session management ------------------------
-                //spring no longer always creates a new session in spring 3
-                .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                //spring no longer always creates a new session in spring 3, need this pre section 9 for to always create a new JSESSIONID on login
+                // .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+
+                //--- JWT --- have to set sessionManagement sessionCreationPolicy to Stateless in order to use JWT
+                // --- JWT --- This turns off JSESSIONID generation
+                .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 //-------------------- CSRF--------------------------
                 //tell spring security these are public apis, but will protect all other endpoints
                 //csrf process against malicious posts/puts so don't need notices as it only gets
@@ -78,6 +83,13 @@ public class ProjectSecurityConfig {
 
                 // adding custom logging filter at the time of the BasicAuthenticationFilter
                 .addFilterAt(new LoggingAtAuthenticationFilter(), BasicAuthenticationFilter.class)
+
+
+                // --- JWT --- add filter to generate a JWT after username and password are extracted - only runs on /user (when logging in JWt is generated)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+
+                // --- JWT --- add filter to validate JWT before BasicAuthenticationFilter - runs on every authenticated route except /user (login route)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 //-------------------- Authentication -------------------------------------
                 .authorizeHttpRequests()
 

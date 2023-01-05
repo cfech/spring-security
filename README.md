@@ -1164,7 +1164,149 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 
 # Section 9 Authentication with JWT #
 
+## 81 JSESSIONID And Issues With It ##
+-  ```JSESSIONID``` - tell spring whether user is a valid logged in user
+- this is a simple token, good for what it does but wont help with communications between services
+- does not hold any user data
+- saved as a cookie in the browser, which is tied to the session
+
+## 82 Advantages of Token Based Authentication ##
+![](./images/role-of-tokens.png)
+- could be plain string or more complex like JWT
+- usually generated on Login
+- token is sent on every request to the backend server, which the server then has to validate
+- backend server usually smart enough to understand it has to validate the token 
+
+
+### Advantages of Tokens ###
+![](./images/advantages-of-tokens.png)
+- especially useful tp purge tokens if security breach
+- help execute single sign on, and stateless authentication by passing the validated token around
+- 
+
+## 83 84 Deep Dive of JWT ##
+![](./images/jwt-overview.png)
+![](./images/jwt-2.png)
+
+- uses base64 encoding
+- header - store metadata in the token, ie: algorithm, type etc
+- body - can store any data about the user/issuer here
+- signature - can be used to validate the token
+- should validate on each request
+- to easily decode jwt's use [jwt.io](https://jwt.io)
+- no database needed as token is stored in browser and comparison is recomputed in the app
+
+### Validating JWTs ###
+![](./images/jwt-signature.png)
+- if all communication is withing your LAN/Firewall you don't have to worry about JWT tampering as much
+- if you are communicating outside your network you must validate the signature of your JWT to ensure no one has tampered with it
+![](./images/JWT-validation-2.png)
+- backend will regenerate the signature hash using it's secret and compare it to the received JWT to see if the JWT has been tampered with 
+
+## 85 Configuring App To Use JWTs ##
+- sprinsecuritysec9/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+### Dependencies ###
+- must add the following dependencies
+
+```
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+```
+
+### Security Configuration ###
+- must turn of ```JSESSIONID``` generation  by setting ```sessionCreationPolicy``` to ```STATELESS```
+
+```
+.and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+```
+
+- then have to configure backend to send ```Authorization``` header to the frontend 
+- in the cors configuration have to add
+
+```
+corsConfiguration.setExposedHeaders(Arrays.asList("Authorization"));
+```
+
+## 86 87 Security Filters and JWTs ##
+- sprinsecuritysec9/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+### Generating JWT ###
+- write filter to generate token
+- only want token generated on initial login
+
+sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.java
+
+- filter will be added after the ```BasicAuthenticationFilter```
+
+```
+.addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+```
+
+### Validating JWT ###
+- sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenValidatorFilter.java
+- write filter to validate token
+- want this to run on all authenticated requests except initial login
+- will be executed before the ```BasicAuthenticationFilter```, to validate the JWt before getting there
+
+```
+ .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+```
+
+
+## 88 Client App Changes to Handle JWT ##
+- it is the clients responsibility on each request to save the token in the browser on login
+- angular_ui/ui-section-9/src/app/components/login/login.component.ts
+
+```
+ window.sessionStorage.setItem("Authorization", responseData.headers.get("Authorization")!);
+ ```
+ - also the clients responsibility to send token back to backend on request
+ -angular_ui/ui-section-9/src/app/interceptors/app.request.interceptor.ts
+
+ ```
+      let authorization = sessionStorage.getItem("Authorization")
+      if(authorization){
+        httpHeaders = httpHeaders.append("Authorization", authorization)
+      }
+ ```
+
+
+## 89 Validating JWT is Working ##
+- with changes from this section should now see 
+
+   1. ```Authorization``` JWT in you application - session storage
+   2. Only th ```XSRF-TOKEN``` in the cookies, there should be no more ```JSESSIONID``` as we turned that off
+
+   *if you still have a ```JSESSIONID``` there is a good chance it is cached*
+
+- now the filter chain holds our new JWT filters
+
+![](./images/jwt-filter-chain.png)
+
+## 90 Validating JWT Expiration ##
+- if JWT is expired the backend will throw an ```ExpiredJWT``` exception and the user should log back in
+
+
+
 # Section 10 Method Level Security #
+
+## 91 Introduction To Method Level Security ##
+
 
 # Section 11 Deep Dive of Oauth2 and OpenID Connect ##
 
