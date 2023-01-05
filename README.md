@@ -1371,8 +1371,30 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
  @PostFilter("filterObject.contactName != 'Test'")
 ```
 
-# Section 11 Deep Dive into Oauth2 and OpenID Connect ##
+# Section 11 Deep Dive Into Oauth2 and OpenID Connect ##
 
+## 98 Problem OAuth2 is Trying to Solve ##
+
+## 99 Introduction to OAuth2 ##
+
+## 100 OAuth2 Terminology ##
+
+## 101 102 OAuth2 Sample Flow ##
+
+## 103 104 Deep Dive and Demo Authorization Code Grant Type Flow in OAuth2 ##
+
+## 105 Deep Dive and Demo Implicit Grant Flow in OAuth2 ##
+
+## 106 Deep Dive of Password Grant Type Flow in OAuth2 ##
+
+## 107 Deep Dive of Credentials Grant Type Flow in OAuth2 ##
+
+## 108 Deep Dive of Refresh Token Grant Type Flow in OAuth2 ##
+
+
+## 109 How Resource Server Validates Tokens Issue by the Auth Server ##
+
+## 110 Introduction to OpenID Connect ##
 # Section 12 Implementing OAuth2 Using Spring Security #
 
 # Section 13 Implementing OAuth2 with Keycloak #
