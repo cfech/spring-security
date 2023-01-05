@@ -1372,29 +1372,206 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ```
 
 # Section 11 Deep Dive Into Oauth2 and OpenID Connect ##
+- theory section
+- if you use microservices/multiple applications it can be better to have an authentication server instead of having authentication/authorization logic in every application
 
 ## 98 Problem OAuth2 is Trying to Solve ##
+![](./images/intro-to-oauth2.png)
+![](./images/oauth2-2.png)
+- by sharing a limited authorization token we can give the 3rd party access to the app without having to trust that application isnt going to mis-use their permissions
+- could revoke these tokens 
+- there is a separate OAuth2 server handling the authentication and token creation
+
+### Common Accounts Using OAuth ###
+![](./images/oauth2-2.png)
+![](./images/bank-without-oauth.png)
 
 ## 99 Introduction to OAuth2 ##
+- [oauth docs](https://oauth.net/2/)
+
+![](./images/oauth2-intro.png)
+- OAuth2 is a standard, there are many different flavors.
+- there is no OAuth2 code 
+- different grant types are for different use cases
+   - Authorization Code - user accounts
+   - PKCE - used for SPA
+   - Client Credentials - server to server communication
+   - Device Code - for IOT such as smart tv
+   - Refresh Token 
+   - Implicit Flow (deprecated, will be remove with Oauth2.1)
+   - Password Grant (deprecated, will be remove with Oauth2.1)
+
+### OAuth2.1 ###
+- [its time for OAuth2.1](https://aaronparecki.com/2019/12/12/21/its-time-for-oauth-2-dot-1)
+- removing unused grants 
+- simplifying overall standards
 
 ## 100 OAuth2 Terminology ##
+![](./images/oauth2-terminology.png)
+- resource owner : the user who owns the resources being accessed
+- client : the third party app/service trying to interact with service that needs authentication
+- Authorization Server : responsible for authenticating user, resource owner has an account on this server
+- Resource Server : server where the resources the client wants to consume are located 
+   - depending on the size of the project the Authorization Server and Resource Server could be the same machine 
+- Scopes : granular permissions, very similar to roles/authorities
 
-## 101 102 OAuth2 Sample Flow ##
 
-## 103 104 Deep Dive and Demo Authorization Code Grant Type Flow in OAuth2 ##
+## 101 OAuth2 Sample Flow ##
+![](./images/oauth2-sample-flow-1.png)
+![](./images/oauth2-sample-flow-2.png)
+- fictional scenario for example
+- Must register app as a ```Client``` with the ```Authorization Server``` when you register as a ```Client``` you get a ```Client ID``` and ```Client Secret```
+- on login ```Client``` must redirect to the ```Authorization Server```, user credentials never shared with the ```Client```
+- Then ```Resource Owner``` asked if they consent to sharing resources with ```Client```
+- If the ```Resource Owner``` agrees then ```ACCESS TOKEN``` and ```REFRESH TOKEN``` are shared with the ```Client``` from the ```Authorization Server```
+   - ```Authorization Server``` decides how long the tokens are good for
+- ```Client``` sends api requests with ```ACCESS TOKEN``` to the ```Resource Server```, verifies the token with the ```Authorization Server```
+   - the ```ACCESS TOKEN``` is scoped to only the permissions needed by the ```Client```, the ```Client``` cannot update account credentials etc...
+- ```Resource Server``` sends requested resources to ```Client``` 
+- most times you will be redirected back to the ```Client``` after providing consent
+
+### 102 Demo of Sample Flow ###
+- sign up for any account with google, facebook, github etc...
+- example using slack 
+   - ```Resource Owner``` : you 
+   - ```Client``` : slack
+   - ```Authorization Server``` : run by google
+   - ```Resource Server```: run by google
+   - ```ACCESS TOKEN``` : provided by ```Authorization Server```
+
+-  most real customers may have their own ```Authorization Server```
+
+## 103 Deep Dive and Demo Authorization Code Grant Type Flow in OAuth2 ##
+- have to choose grant type based on use case
+- use when we have an end user and 2 resources trying to communicate with each other on behalf of the user
+- more secure, has superseded ```Implicit Grant```, 
+
+![](./images/ouath-flow-authorization-grant.png)
+
+![](./images/oauth2-authorization-grant-step2-3-5.png)
+
+5. ```ClientID``` and ```ClientSecret```  shared from client to ```Authorization Server```
+
+![](./images/oauth2-authorization-code-3.png)
+
+- more secure then ```Implicit Grant Type```
+
+
+1. ```Resource Owner``` requests login
+2. ```Client``` redirects  ```Resource Owner``` to the ```Auth Server```, also appends important information such as ```ClientID``` to tell ```Auth Server``` what ```Client``` to give access to,  ```SCOPE``` for type of access, and ```REDIRECT URI``` to get back to original ```Client```
+3. ```Resource Owner``` logs into ```Auth Server```
+4. ```Auth Server``` provides ```Client``` with ```Authorization Code```
+5. ```Client``` provides ```Auth Server``` with ```Authorization Code```, ```ClientID```, ```ClientSecret```, ```Grant Type``` and ```Redirect URI```
+6. if all checks out ```Auth Server``` provides ```Client``` with ```Access Token```
+7. ```Client``` requests resources on from ```Resource Server``` on behalf of the ```Resource Owner``` and sends the ```Access Token``` to authenticate
+8. Resources returned to the ```Client``` from the ```Resource Server```
+
+
+### Demo ###
+[oauth playground](https://www.oauth.com/playground/)
+
 
 ## 105 Deep Dive and Demo Implicit Grant Flow in OAuth2 ##
+- deprecated, not to be use for production
+- will be removed from OAuth2.1
+
+![](./images/ouath2-implicit-grant-flow-1.png)
+![](./images/ouath2-implicit-grant-flow-2.png)
+
+- less secure because there is no way to send the ```ClientSecret``` in get requests outside of the Url. This would exposing the client credentials it to the world
+- ```Access Token``` would also come in the URL as well, exposed it
+- No was to reliably prevent a malicious user from inject in a different token
+
+### Demo ###
+[oauth playground](https://www.oauth.com/playground/)
 
 ## 106 Deep Dive of Password Grant Type Flow in OAuth2 ##
+![](./images/oauth2-password-grant-1.png)
+![](./images/oauth2-password-grant-2.png)
+
+- also know as ```Resource Owner Credentials Grant```
+- no recommended for production
+- in this case ```Resource Owner``` credentials are given dirctly to the ```Client```
+- the ```Client``` then posts the ```Resource Owner``` credentials, ```ClientID``` and ```ClientSecret``` to the ```Authorization Server```
+- ```Authorization Server``` sends back an ```Access Token``` to the ```Client``` which the ```Client``` can then use to access the ```Resouce Server``` on behalf of the ```Resource Owner```
+
+- could be used if all the parties are part of the sam organization
+- being removed in Oauth2.0+
+
+
+
+### Demo ###
+[oauth playground](https://www.oauth.com/playground/)
 
 ## 107 Deep Dive of Credentials Grant Type Flow in OAuth2 ##
+![](./images/oauth2-client-credentials-1.png)
+![](./images/oauth2-client-credentials-2.png)
+
+- only have a ```Client```, ```Auth Server``` and ```Resource Server```, no user 
+- grant_type will be 'client_credentials'
+
+
+1. ``` Client``` sends request to ```Auth Server```, it states there is no end user and provides ```ClientID``` and ```Client Secret```
+2. ```Auth Server```, provides ```Access Token``` to ```Client```
+3. ```Client``` sends request to ```Resource Server``` with the ```Access Token```
+4. If all good ```Resource Server``` sends back resources to the ```Client``` 
 
 ## 108 Deep Dive of Refresh Token Grant Type Flow in OAuth2 ##
+![](./images/oauth2-refresh-token-1.png)
+![](./images/oauth2-refresh-token-2.png)
 
+
+- inside the response after a successfully authentication, there is usually a ```Refresh Token```
+- will be required to refresh the ```Access Token``` after x amount of time
+- ```Client``` cna use the ```Refresh Token``` to request a new ```Access Token``` from the ```Auth Server``` if the ```Refresh Token``` is valid
+  - does not require end user to login again
+- it is the job of the ```Client``` application to implement this refresh token configuration
 
 ## 109 How Resource Server Validates Tokens Issue by the Auth Server ##
 
+### Approach 1 Communication ###
+![](./images/resource-server-token-validation-1.png)
+
+- ```Resource Server``` must reach out to ```Authorization Server``` with the provided ```Access Token``` to validate that token on ```Client``` requests
+
+### Approach 2 Common Database ###
+![](./images/resource-server-token-validation-2.png)
+
+- store all valid tokens in a common database and check if the ```Access Token``` is present 
+
+### Approach 3 Certificates ###
+![](./images/resource-server-token-validation-3.png)
+
+- ``` Resource Server``` has the public key of ```Access Server```, it can use the public key to validate any ```Access Tokens```
+- most common and recommended approach
+
+
+
 ## 110 Introduction to OpenID Connect ##
+- not a grant type flow
+- OIDC is a wrapper around OAuth2
+
+![](./images/openID-connect-1.png)
+
+
+- OIDC (Open ID Connect) sits on top of OAuth2 for authentication, and brings standards for sharing identity details
+- there is no way with OAuth2 to know details about the client, ie: username, email etc...
+- ```Authorization Server``` is smart enough to know that if ```openid``` exists in the ```SCOPE```, then it returns both an ```Access Token``` and ```ID Token```
+
+![](./images/openID-connect-2.png)
+
+- With ```Access Token``` and ```ID Token``` we now have IAM, a more advanced concept implemented by Keycloak and other OAuth2 providers
+### Demo ###
+[oauth playground](https://www.oauth.com/playground/)
+
+
 # Section 12 Implementing OAuth2 Using Spring Security #
+
+## 111 Registering Client Details With Github ##
+- will use as OAuth2 ```Auth Server```
+
+## 112 Using Github OAuth2 Server With Spring Boot ##
+
+## 113 Running Spring App with Github OAuth2 ##
 
 # Section 13 Implementing OAuth2 with Keycloak #
