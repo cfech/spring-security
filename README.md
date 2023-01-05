@@ -1301,11 +1301,14 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ## 90 Validating JWT Expiration ##
 - if JWT is expired the backend will throw an ```ExpiredJWT``` exception and the user should log back in
 
+![](./images/method-level-security.png)
 
 
 # Section 10 Method Level Security #
 
 ## 91 Introduction To Method Level Security ##
+
+## 92 Details about Method Invocation Authorization ##
 
 
 # Section 11 Deep Dive of Oauth2 and OpenID Connect ##
