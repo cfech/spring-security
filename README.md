@@ -7,7 +7,7 @@
 
 # Section 1 Getting Started #
 
-## Creating spring projects ##
+## Creating Spring Projects ##
 can create a spring project at https://start.spring.io/
 - most basic project uses spring web (web server default is tomcat), and dev tools
 - can add in spring security for security starter
@@ -90,7 +90,7 @@ spring.security.user.password=testing
   - can write logic in authentication providers to decide how to authenticate
   - Authentication manager will try all authentication providers, not just one
   - Can leverage spring security classes ```UserDetailsManager``` and ```UserDetailsService```
-6. Encodes passwords as to not store in plain text
+6. Whatever ```PasswordEncoder``` bean encodes passwords as to not store in plain text
   - works with ```UserDetailsManager/Service``` to decide if the user should be authenticated
 7. Sends response back to authentication manager
 8. Forwards back to security filters
@@ -176,22 +176,22 @@ The default configuration for web security. It relies on Spring Security's conte
 ```
 
 # Section 3 Defining and Managing Users #
-## 22 Approach 1 Configuring users using inMemoryUserDetailsManager ##
+## 22 Approach 1 Configuring Users Using InMemoryUserDetailsManager ##
 - not for production
-- can define multiple users along with their authorities with the help fo ```inMemoryUserDetailsManager``` and ```UserDetails```
+- can define multiple users along with their authorities with the help fo ```InMemoryUserDetailsManager``` and ```UserDetails```
 - use the ```withDefaultPasswordEncoder()``` method, this method is deprecated
 
 ![approach1](./images/configuring-users-approach-1.png)
 
 
 
-## 23 Approach 2 Configuring users using inMemoryUserDetailsManager ##
+## 23 Approach 2 Configuring Users Using inMemoryUserDetailsManager ##
 - not for production
-- here we create a bean of password encoder
+- here we create a bean of ```NoOpPasswordEncoder```, which implements ```PasswordEncoder```, this bean will automatically be picked up by spring
 
 ![approach 2](./images/in-memory-user-approach-2.png)
 
-## 24 Understanding User Management Interfaces and Classes ## 
+## 24 Understanding User Management Interfaces And Classes ## 
 
 ![user management](./images/user-management-classes-and-interface.png)
 
@@ -203,7 +203,7 @@ The default configuration for web security. It relies on Spring Security's conte
 - When you return a new class of type ```...UserDetailsManager```, the ```loadUserByUsername``` method is called
   - this method returns ```UserDetails``` which implements ```UserDetailsManager ``` which extends ```UserDetailsService```
 
-## 25 Deep Dive of UserDetails Interface and User Class ##
+## 25 Deep Dive Of UserDetails Interface And User Class ##
 - holds methods for 
   1. getAuthorities()
   2. getPassword()
@@ -215,7 +215,7 @@ The default configuration for web security. It relies on Spring Security's conte
 
 - sample of this interface are the ```User``` Class, we can use this or implement our own ```userDetails```
 
-- this object is readOnly, there are not setters, once the object is created through the constructor it is immutable
+- this object is readOnly, there are no setters, once the object is created through the constructor it is immutable
 - 
 
 ![auth vs user details](./images/authentication-vs-userdetails.png)
@@ -223,7 +223,7 @@ The default configuration for web security. It relies on Spring Security's conte
 - ```AuthenticationProvider``` will convert the userDetails into the Authentication Token, after fetched from the database and authenticated
 - this is done by default in the ```AbstractUserDetailsAuthenticationProvider.java```,  ```authenticate``` method, if authenticated then it called the ```createSuccessAuthentication``` method witch takes in an auth token, user and returns back a populated authentication token
 
-## 26 Deep Dive of UserDetailsService and UserDetailsManager ##
+## 26 Deep Dive Of UserDetailsService And UserDetailsManager ##
 - ```UserDetailsService```, holds the method ```loadUserByUsername``` which loads the user from the database
 - only username is loaded, not the password, which we dont want to move over the network
 - ```UserDetailsService```is extended by the ```UserDetailsManager``` which gives the ability to perform CRUD operations on users
@@ -233,12 +233,12 @@ The default configuration for web security. It relies on Spring Security's conte
 - ```inMemoryUserDetailsManager```, ```JdbcUserDetailsManager``` and ```LdapUserDetailsManager```  are the most commonly used and examples are provided by spring
 
 
-### inMemoryUserDetailsManager ###
+### InMemoryUserDetailsManager ###
 
-- for ```inMemoryUserDetailsManager``` the ```createUser()``` method is called through the constructor 
+- for ```InMemoryUserDetailsManager``` the ```createUser()``` method is called through the constructor 
 - holds the ```loadUserByUsername()``` method 
 - ```DaoAuthenticationProvider``` knows which details manager to invoke by which beans are created 
-- ```inMemoryUserDetailsManager``` used mostly for dev and demo
+- ```InMemoryUserDetailsManager``` used mostly for dev and demo
 
 ### JdbcUserDetailsManager ###
 - most common for production 
@@ -384,7 +384,7 @@ spring.jpa.properties.hibernate.format_sql=true
 - in schema above
 - will have to create your own JPA entity, wont be able to sue the default one
 
-## 32 Creating JPA Entity and Repo for new table ##
+## 32 Creating JPA Entity And Repo For New Table ##
 - have to create a repository
 ```
 sprinsecuritysec3/src/main/java/com/eazybytes/repository/CustomerRepository.java
@@ -409,15 +409,15 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 @EnableWebSecurity
 ```
 
-## 33 Create custom implementation of userDetailsService ##
+## 33 Create Custom Implementation Of UserDetailsService ##
 - if we are using our own database setup, we must override the default ```UserDetailsService``` and write logic for loading the user in the ```loadUserByUsername``` method
 
 - sprinsecuritysec3/src/main/java/com/eazybytes/config/EazyBankUserDetails.java
 
-### multiple userDetailsService ###
-- if you have ```userDetailsService``` it will confuse the ```DaoAuthenticationProvider```
+### Multiple UserDetailsService ###
+- if you have ```userDetailsService``` it will confuse the default ```DaoAuthenticationProvider```, can have multiple details services but have to have custom ```AuthenticationProvider```
 
-## 34 Allowing new user registration ##
+## 34 Allowing New User Registration ##
 - Could override the ```UserDetailsManager``` ```createUser() ``` method 
 - see for example sprinsecuritysec3/src/main/java/com/eazybytes/controller/LoginController.java
 - have to permit non authenticated users to hit the /register path
@@ -432,16 +432,16 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 
 - successful response will be ```Given user details are successfully registered```
 
-## Update Sequence with custom  JBDC User Details Service ##
+## Update Sequence With Custom  JBDC User Details Service ##
 
 ![s1](./images/custom-sequence-1.png)
 ![s2](./images/custom-sequence-2.png)
 
 
-# Section 4 Password Management and Encoders#
+# Section 4 Password Management And Encoders #
 
 
-## 35 How are passwords validated in spring security by default ##
+## 35 How Are Passwords Validated In Spring Security By Default ##
 - default password encoder uses plain text
 ![password encoding](./images/how-passwords-are-validated.png)
 
@@ -460,13 +460,13 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 - not for production
 
 
-## 36 Encoding vs Encryption vs Hashing part 1 ##
+## 36 Encoding vs Encryption vs Hashing Part 1 ##
 ![e-e-h](./images/encoding-vs-encryption-vs-hashing.png)
 
-## 37 Encoding vs Encryption vs Hashing part 2 ##
+## 37 Encoding vs Encryption vs Hashing Part 2 ##
 ![e-e-h-2](./images/e-e-h-2.png)
 
-## 38 How to validate passwords with hashing and password encoders ##
+## 38 How to Validate Passwords With Hashing And Password Encoders ##
 ![validating with hashing](./images/how-passwords-are-validated.png)
 - password encoders take care of comparing hash strings
 
@@ -495,7 +495,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 - sha-256, 1024 iterations and random 8-byte salt
 
 ### Pbkdf2PasswordEncoder ###
-- can use but not recommended
+- can use in production but not recommended
 - has become less secure over last few years
 - susceptible to brute force attacks
 
@@ -518,7 +518,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 ### SCryptPasswordEncoder ###
 - advance version of ```BCryptPasswordEncoder```
 - uses both cpu and ram
-- make brute force tougher due to resource restriction
+- makes brute force attacks more difficult due to resource restriction
 - more secure
 ### Argon2PasswordEncoder ###
 - newest based on latest hashing algorithm 
@@ -538,7 +538,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
     }
 ```
 
-- has passwords now when the creating an new user ex: 04_section/sprinsecuritysec4/src/main/java/com/eazybytes/controller/LoginController.java
+- passwords are not hashed when the creating an new user ex: 04_section/sprinsecuritysec4/src/main/java/com/eazybytes/controller/LoginController.java
 
 - by default does 10 rounds of hashing but this can be configured
 - could change options if wanted to utilizing different constructors of ```BCryptPasswordEncoder```
@@ -565,7 +565,7 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 ```
 
 ## 43 Login With ByCrypt Password Encoder ##
-- if using the default ```DaoAuthenticationProvider``` then no additional configuration is needed. ```DaoAuthenticationProvider```  will handle calling functions for password comparison 
+- if using the default ```DaoAuthenticationProvider``` then no additional configuration is needed. ```DaoAuthenticationProvider```  will pick up the ```BCryptPasswordEncoder``` bean and  handle calling functions for password comparison 
 
 - could define your own password encoder by implementing PasswordEncoder interface but not recommended
 
@@ -585,7 +585,7 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 - ```supports()``` - tells which type of authentication objects are supported
    - called inside the ```ProviderManager```, which implements the ```AuthenticationManager``` interface, to check if the current authenticationProvider supports the type of authenticationToken that is passed in
 
-- ```DaoAuthenticationProvider``` supports ``````UsernamePasswordAuthenticationToken``` out of the box
+- ```DaoAuthenticationProvider``` supports ```UsernamePasswordAuthenticationToken``` out of the box
 
 - other auth tokens provided by spring
 1. ```TestingAuthenticationToken```
@@ -595,7 +595,7 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 ![auth provider details](./images/auth-provider-details-1.png)
 
 ## 46 Implementing Custom Authentication Provider ##
-- since we created our own custom AuthenticationProvider, we no longer need a userDetailsService. If wa wanted to make our custom AuthenticationProvider depend on a userDetailsService, like the default ```DaoAuthenticationProvider``` then we could use on, but not necessary as this logic is now in our ```EazyBankUsernamePwdAuthenticationProvider```, which is talking directly to the CrudRepository via DI
+- since we created our own custom ```AuthenticationProvider```, we no longer need a ```userDetailsService```. If wa wanted to make our custom ```AuthenticationProvider``` depend on a ```userDetailsService```, like the default ```DaoAuthenticationProvider``` then we could use on, but not necessary as this logic is now in our ```EazyBankUsernamePwdAuthenticationProvider```, which is talking directly to the CrudRepository via DI
 
 
 - example : sprinsecuritysec5/src/main/java/com/eazybytes/config/EazyBankUsernamePwdAuthenticationProvider.java
@@ -612,7 +612,7 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 ![flow with custom authentication provider](./images/flow-with-custom-authentication-provider.png)
 
 - SpringSecurityFilter and ```AuthenticationManager``` do their own job, we do not override those
-- we changed the authenticationProvider and its methods (which are called by the ```AuthenticationManager```), incorporating the database call into our custom ```EazyBankUsernamePwdAuthenticationProvider```. Since we were no longer user the default ```DaoAuthenticationProvider```, we did not need a ```UserDetailsService```/ ```UserDetailsManager```
+- we changed the authenticationProvider and its methods (which are called by the ```AuthenticationManager```), incorporating the database call into our custom ```EazyBankUsernamePwdAuthenticationProvider```. Since we were no longer using the default ```DaoAuthenticationProvider```, and incorporated the ```CustomerRepository``` logic, we did not need a ```UserDetailsService```/ ```UserDetailsManager```
 
 - Also overrode the ```PasswordEncoder``` to use the ```BCryptPasswordEncoder```
 
@@ -623,7 +623,7 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 
 - Starting in this section we will start using the Angular UI to talk to our backend
 
-## 49 Setting up Separate UI ## ##
+## 49 Setting up Separate UI ##
 - directions for setting up are ./angular_ui/bank-app-ui/README.md
 
 ## 51 Creating new DB for schema ##
@@ -806,7 +806,7 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 ```
 
 
-## 53 creating a new user with postman ##
+## 53 creating A New User With Postman ##
 
 - can post to ```localhost:8888/register```
 ```
@@ -833,6 +833,9 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 - default is to block this 
 
 ## 56 Options to Fix Cors ##
+
+- sprinsecuritysec7/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
 ![](./images/cors-solution-1.png)
 
 - The browser sends a preflight request to the server and this is where origin data is communicated
@@ -866,16 +869,22 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 ![](./images/csrf-solution.png)
 ![](./images/csrf-solution-2.png)
 
-## 61 Ignoring CSRF Protection For Public API endpoints ## ##
+## 61 Ignoring CSRF Protection For Public API endpoints ##
+
 - can use to expose certain public endpoints beyond csrf protection
+
 
 ```
 csrf().ignoringRequestMatchers("/contact", "/register")
 ```
 - use to be ```ignoreAntMatchers()```
+
 ## 62 Implementing CSRF Token Solution ##
 - by default spring ```CookieCsrfTokenRepository``` will create a token with the name ```XSRF-TOKEN```
+- Sinec Spring v3 we need a ```OncePerRequestFilter``` to create the header on each request
 
+- [what is once per requests filter](https://www.baeldung.com/spring-onceperrequestfilter)
+- sprinsecuritysec7/src/main/java/com/eazybytes/filter/CsrfCookieFilter.java
 ### Part 1 - Backend ###
 - sprinsecuritysec6/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
 ```
@@ -892,8 +901,6 @@ csrf().ignoringRequestMatchers("/contact", "/register")
 
 ...
 ```
-
-- due to updates in spring security have to include a once pre request filter in order to continually append the CSRF cookie in the request/response headers
 
 ### Part 2 - Frontend ###
 - have to handle reading and return the cookie in javascript on the frontend
@@ -926,7 +933,7 @@ validateUser(loginForm: NgForm) {
 
 ### Basic Authentication ##
 - with this configuration we now go through the ```BasicAuthenticationFilter``` as we post authentication to the ```/user``` endpoint
-- the ```BasicAuthenticationFilter``` calls the ```ProviderManager``` which calls the ```EazyBankUsernamePwdAuthenticationProvider.autheenticat()``` method, this fetches the user and does the authentication by calling ```PasswordEncoder.matches()``` method, if it does match thn the ```UsernamePasswordAuthenticationToken``` is called constructor which creates the auth token and authenticated to true
+- the ```BasicAuthenticationFilter``` calls the ```ProviderManager``` which calls the ```EazyBankUsernamePwdAuthenticationProvider.authenticate()``` method, this fetches the user and does the authentication by calling ```PasswordEncoder.matches()``` method, if it does match then the ```UsernamePasswordAuthenticationToken``` constructor si called which creates the auth token and sets authenticated to true
 - the authentication information is encoded on a ```Authorization Basic:``` header
 - this is not recommend for production apps as the username and password are not encrypted on the header, they only exist in as base 64
 
@@ -934,20 +941,21 @@ validateUser(loginForm: NgForm) {
 ## 64 Authentication vs Authorization ##
 ![](./images/authentication_vs_authorization.png)
 
-## 65 How Authorities are Stored in Spring Security ##
+## 65 How Authorities Are Stored In Spring Security ##
 ![](./images/authorities_vs_roles.png)
 ![](./images/how_are_authorites_stored.png)
 - authorities are passed to ```UsernamePasswordAuthenticationToken``` upon creation as an unmodifiable list
 - authorities and roles are very similar and used to create ```GrantedAuthorities```
 
 
-## 66 Creating new table Authorities to store multiple roles or authorities ##
+## 66 Creating New Table Authorities ##
 - create an authorities table and use the id as a foreign key for the user
 - see ./database_seed.sql
 
 ## 67 Backend Changes To Load Authorities ##
-- have to create a new entity authority to account for new table in db
-- have to map authority model, manyToOne and customer model
+- have to create a new entity ```Authority``` to account for new table in db
+- sprinsecuritysec7/src/main/java/com/eazybytes/model/Authority.java
+- have to map ```Authority``` model, ```@manyToOne``` to ```Customer``` model
 - this will pull authorities based on primary/foreign key from the db and map them to the customer object upon request of the customer
 
 
@@ -986,9 +994,10 @@ validateUser(loginForm: NgForm) {
 
 ```
 
-### Session ManageMent ###
+### Session Management ###
 - as of spring boot 3 and security 6 we now need to explicitly tell spring to always create new sessions 
 - this will create a new session each time the user logs in
+- if you restart the server, must re-login to get a valid JSessionID
 
 ```
                 .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
@@ -1002,14 +1011,14 @@ validateUser(loginForm: NgForm) {
 - roles also us ```GrantedAuthority``` and ```SimpleGrantedAuthority```
 - when using roles it should awalys start with the ```ROLE_``` prefix as to differentiate between authorities and roles
 
-## 71 and 72 Configuring Roles Authorization Inside App using Spring Security ##
+## 71 and 72 Configuring Roles Authorization ##
 - sprinsecuritysec7/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
 
 ![](./images/role_configuration.png)
 - ```hasRole``` - have to have the exact authority
 - ```hasAnyRole```, if they have any of the acceptable ones
 - if neither of above options work use ```access()``` which allows us to configure using spring expression language
-- DO NOT USE THE ROLE PREFIX IN CODE, spring adds the prefix value
+- **DO NOT USE THE ROLE PREFIX IN CODE, spring adds the prefix value**
 
 ex: 
 ![](./images/role_example.png)
@@ -1025,7 +1034,133 @@ ex:
 
 ## 73 Spring Filters and Simple Use Cases ##
 ![](./images/serverlets-vs-filters.png)
+-  spring security filters play a vital role inside spring security
 
+![](./images/security-filters.png)
+- could create a custom filter to do whatever we want it to such as intercepting requests and adding headers, logging auth data at a certain point, encryption of input data, add MFA 
+
+- filters are processed in a chain fashion executing sequentially one at a time
+
+## 74 Demo of Built In Filters ##
+
+![](./images/built-in-filters.png)
+- changes are not for production, will create large security risk
+
+
+```
+@EnableWebSecurity(debug = true)
+```
+```
+logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
+```
+
+- logging level also turns on ```logger.isDebugEnabled```
+
+## 75 Creating Custom Filters ##
+
+![](./images/implementing_custom_filters.png)
+
+``` Filter``` interface exposes 
+- ```init()```: empty by default, runs on creation of filter
+- ```destroy()```: empty by default runs on destruction of filter
+- ```doFilter()```: the main method that must be overridden when creating a custom filter
+
+## 76 77 78 Adding Custom Filters ##
+- sprinsecuritysec8/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+- filter chain before modification
+![](./images/base_security_filter_chain.png)
+
+ 
+### AddFilterBefore ###
+![](./images/addFilterBefore.png)
+- sprinsecuritysec8/src/main/java/com/eazybytes/filter/RequestValidationBeforeFilter.java
+
+- also have to add code to ```defaultSecurityFilterChain``` to add in the new filter
+
+```
+ //adding custom validation filter before the BasicAuthenticationFilter in the filter chain
+ //filter we ant to add, where we want it to go
+  .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class )
+```
+
+- can see new filter is now in the chain
+![](./images/security-filter-chain-add-before-2.png)
+
+### AddFilterAfter ###
+
+
+![](./images/addFilterAfter.png)
+
+- want to add a logger after authentication to log who logs in 
+- sprinsecuritysec8/src/main/java/com/eazybytes/filter/AuthoritiesLoggingAfterFilter.java
+
+- after writing filter have to add it to the ```defaultSecurityFilterChain```
+
+```
+.addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+```
+
+- after we add the filter the chain now looks like 
+
+![](./images/afterFilter2.png)
+
+- and in the logs we get 
+
+```
+User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, VIEWBALANCE, ROLE_USER, ROLE_ADMIN, VIEWCARDS, VIEWACCOUNT]
+```
+
+### AddFilterAt ###
+![](./images/addFilterAt.png)
+- adds a filter to run around the same time as the other one passed in, however spring will execute these filters in a random order
+- not used a lot as can be unpredictable 
+- here we will log as the ```BasicAuthenticationFilter``` is running
+- sprinsecuritysec8/src/main/java/com/eazybytes/filter/AuthoritiesLoggingAtFilter.java
+
+- after writing filter have to add it to the ```defaultSecurityFilterChain```
+```
+  // adding custom logging filter at the time of the BasicAuthenticationFilter
+  .addFilterAt(new LoggingAtAuthenticationFilter(), BasicAuthenticationFilter.class)
+```
+
+- after adding this filter the chain now looks like:
+
+![](./images/custom-filter-chain.png)
+
+- can see all the custom filters we have added so far
+
+
+
+## 79 Generic Filter Bean And OncPerRequestFilter ##
+- other options for custom filters
+
+### Generic Filter Bean ###
+- abstract class in spring web
+- simple base implementation of ```Filter```
+- superclass for any type of filter
+- can provide access to all the config and init parameters
+- ```getEnvironment()```, ```getFilterConfig()```, ```getServletContext()```, ```init()``` - some of the methods exposed by this class, making all these details available 
+
+### OncePerRequestFilter ###
+- regular filters are not limited to running once per request, in theory could run many times per request
+- A custom filter that extends ```OncePerRequestFilter``` is guaranteed to run only 1 time per request
+- extends ```GenericFilterBean```
+- business logic should be inside the ```doFilterInternal()``` method
+- other useful methods - ```shouldNotFilter()```, can decide to not filter certain requests 
+- example: sprinsecuritysec8/src/main/java/com/eazybytes/filter/CsrfCookieFilter.java
+- ```BasicAuthenticationFilter``` extends ```OncePerRequestFilter```
+- recommended for use over regular filter due to guarantees that it only runs 1 time
+
+
+
+## 80 Regex Matches For Applying Path Restrictions ##
+- all methods in this image have been replaced by ```requestMatchers()``` in spring v3 / spring security v6
+- examples of [request matchers](https://www.tabnine.com/code/java/methods/org.springframework.security.config.annotation.web.builders.HttpSecurity/requestMatchers)
+
+![](./images/matchers_methods_spring_v2.png)
+![](./images/ant-matchers.png)
+![](./images/regex-matchers.png)
 
 # Section 9 Authentication with JWT #
 
