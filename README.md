@@ -1566,15 +1566,51 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 
 # Section 12 Implementing OAuth2 Using Spring Security #
-- just took notes on this section - did not implement
+- using a separate app for this section only
 
 ## 111 Registering Client Details With Github ##
 - will use Github as OAuth2 ```Auth Server```
 
 - spring boot app will be the ```Client``` in this scenario, 
 
+- sign into github -> settings -> developer settings -> OAuth Apps -> Register New Application
+
+![](./images/oauth-guthub-registration.png)
+
+- github supplies us with a ```ClientID``` and we have to generate the ```ClientSecret```
+- could add logo if you want
+
+
 ## 112 Using Github OAuth2 Server With Spring Boot ##
 
+- 12_section/springsecOAUTH2GitHub/src/main/java/com/eazybytes/springsecOAUTH2GitHub/config/SpringSecOAUTH2GitHubConfig.java
+
+- must include the oauth2 client dependency
+
+```
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-client</artifactId>
+		</dependency>
+```
+- passing ```ClientID``` and ```ClientSecret``` through env vars in the application properties
+
+### Environment Varaibles ###
+- have to add to either bas profile 
+
+```
+export github_client_id=myid
+export github_client_secret=mysecret
+```
+
+- or to the evnironment variables in the intellij configurations
+- edit configurations -> modify options -> environment varaibles
+  - must be seperarted by ;
+
+
 ## 113 Running Spring App with Github OAuth2 ##
+
+- if configured correctly you should be redirected to github login page
+- good for small apps but limits your controll, does not allow for creation of roles/scopes/users etc...
 
 # Section 13 Implementing OAuth2 with Keycloak #
