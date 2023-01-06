@@ -60,7 +60,7 @@
   * [46 Implementing Custom Authentication Provider](#46-implementing-custom-authentication-provider)
   * [47 Testing our Custom Authentication Provider](#47-testing-our-custom-authentication-provider)
   * [48 Spring Security Sequence Flow with Custom AuthenticationProvider](#48-spring-security-sequence-flow-with-custom-authenticationprovider)
-- [Section 6](#section-6)
+- [Section 6 Cors and Csrf](#section-6-cors-and-csrf)
   * [49 Setting up Separate UI](#49-setting-up-separate-ui)
   * [51 Creating new DB for schema](#51-creating-new-db-for-schema)
   * [53 creating A New User With Postman](#53-creating-a-new-user-with-postman)
@@ -789,7 +789,7 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 ![flow with custom authentication provider](./images/flow-with-custom-authentication-provider-simple.png)
 
 
-# Section 6 #
+# Section 6 Cors and Csrf #
 
 - Starting in this section we will start using the Angular UI to talk to our backend
 
