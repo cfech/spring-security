@@ -1034,12 +1034,14 @@ ex:
 
 ## 73 Spring Filters and Simple Use Cases ##
 ![](./images/serverlets-vs-filters.png)
--  spring security filters play a vital role inside spring security
+-  security filters play a vital role inside spring security
 
 ![](./images/security-filters.png)
-- could create a custom filter to do whatever we want it to such as intercepting requests and adding headers, logging auth data at a certain point, encryption of input data, add MFA 
+- you could create a custom filter to do whatever you want, such as intercepting and validating requests or adding headers, logging auth data at a certain point, encryption of input data, add MFA, etc...
 
 - filters are processed in a chain fashion executing sequentially one at a time
+
+- unless explicitly told, filters can execute in a semi-random order
 
 ## 74 Demo of Built In Filters ##
 
@@ -1060,10 +1062,11 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
 
 ![](./images/implementing_custom_filters.png)
 
-``` Filter``` interface exposes 
-- ```init()```: empty by default, runs on creation of filter
-- ```destroy()```: empty by default runs on destruction of filter
-- ```doFilter()```: the main method that must be overridden when creating a custom filter
+- ``` Filter``` interface exposes 
+  - ```init()```: empty by default, runs on creation of filter 
+  - ```destroy()```: empty by default runs on destruction of filter
+  - ```doFilter()```: the main method of a filter, that must be overridden when creating a custom filter
+  - ```doFilterInternal()```: another method, which is called by ```doFilter()```, we have to override this in some cases when we cannot overide the normal ```doFilter()```, such as the ```OncePerRequestFiler```
 
 ## 76 77 78 Adding Custom Filters ##
 - sprinsecuritysec8/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
@@ -1074,7 +1077,9 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
  
 ### AddFilterBefore ###
 ![](./images/addFilterBefore.png)
-- sprinsecuritysec8/src/main/java/com/eazybytes/filter/RequestValidationBeforeFilter.java
+
+
+- create the new filter: sprinsecuritysec8/src/main/java/com/eazybytes/filter/RequestValidationBeforeFilter.java
 
 - also have to add code to ```defaultSecurityFilterChain``` to add in the new filter
 
@@ -1084,7 +1089,7 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
   .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class )
 ```
 
-- can see new filter is now in the chain
+- can now see new filter in the filter chain
 ![](./images/security-filter-chain-add-before-2.png)
 
 ### AddFilterAfter ###
@@ -1092,7 +1097,7 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
 
 ![](./images/addFilterAfter.png)
 
-- want to add a logger after authentication to log who logs in 
+- If we wanted to add a logger after authentication to log who logs in 
 - sprinsecuritysec8/src/main/java/com/eazybytes/filter/AuthoritiesLoggingAfterFilter.java
 
 - after writing filter have to add it to the ```defaultSecurityFilterChain```
@@ -1101,7 +1106,7 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
 ```
 
-- after we add the filter the chain now looks like 
+- now the chain looks like: 
 
 ![](./images/afterFilter2.png)
 
@@ -1115,7 +1120,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ![](./images/addFilterAt.png)
 - adds a filter to run around the same time as the other one passed in, however spring will execute these filters in a random order
 - not used a lot as can be unpredictable 
-- here we will log as the ```BasicAuthenticationFilter``` is running
+- here we will log right before or afert the ```BasicAuthenticationFilter``` runs
 - sprinsecuritysec8/src/main/java/com/eazybytes/filter/AuthoritiesLoggingAtFilter.java
 
 - after writing filter have to add it to the ```defaultSecurityFilterChain```
@@ -1140,7 +1145,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 - simple base implementation of ```Filter```
 - superclass for any type of filter
 - can provide access to all the config and init parameters
-- ```getEnvironment()```, ```getFilterConfig()```, ```getServletContext()```, ```init()``` - some of the methods exposed by this class, making all these details available 
+- ```getEnvironment()```, ```getFilterConfig()```, ```getServletContext()```, ```init()``` - some of the methods exposed by this class, making all these details available to the subclass
 
 ### OncePerRequestFilter ###
 - regular filters are not limited to running once per request, in theory could run many times per request
@@ -1165,24 +1170,24 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 # Section 9 Authentication With JWT #
 
 ## 81 JSESSIONID and Issues With It ##
--  ```JSESSIONID``` - tell spring whether user is a valid logged in user
+-  ```JSESSIONID``` : tells spring whether user is valid
 - this is a simple token, good for what it does but wont help with communications between services
 - does not hold any user data
 - saved as a cookie in the browser, which is tied to the session
+- invalidated if the server is restarted
 
 ## 82 Advantages of Token Based Authentication ##
 ![](./images/role-of-tokens.png)
-- could be plain string or more complex like JWT
+- could be a plain string or more complex structure like a JWT
 - usually generated on Login
-- token is sent on every request to the backend server, which the server then has to validate
+- token is sent on every request to the backend server through a header, which the server then has to validate
 - backend server usually smart enough to understand it has to validate the token 
-
 
 ### Advantages of Tokens ###
 ![](./images/advantages-of-tokens.png)
-- especially useful tp purge tokens if security breach
-- help execute single sign on, and stateless authentication by passing the validated token around
-- 
+- especially useful to purge tokens if there is a security breach
+- helps execute single sign on, and stateless authentication by passing the validated token to different services
+ 
 
 ## 83 84 Deep Dive of JWT ##
 ![](./images/jwt-overview.png)
@@ -1192,16 +1197,16 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 - header - store metadata in the token, ie: algorithm, type etc
 - body - can store any data about the user/issuer here
 - signature - can be used to validate the token
-- should validate on each request
+- should be validated on each request as to avoid tampering
 - to easily decode jwt's use [jwt.io](https://jwt.io)
 - no database needed as token is stored in browser and comparison is recomputed in the app
 
 ### Validating JWTs ###
 ![](./images/jwt-signature.png)
-- if all communication is withing your LAN/Firewall you don't have to worry about JWT tampering as much
+- if all communication is within your LAN/Firewall you don't have to worry about JWT tampering as much
 - if you are communicating outside your network you must validate the signature of your JWT to ensure no one has tampered with it
 ![](./images/JWT-validation-2.png)
-- backend will regenerate the signature hash using it's secret and compare it to the received JWT to see if the JWT has been tampered with 
+- backend will regenerate the signature hash using it's secret and compare it to the received JWT to see if the JWT has been tampered with in transit 
 
 ## 85 Configuring App to Use JWTs ##
 - sprinsecuritysec9/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
@@ -1230,13 +1235,13 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ```
 
 ### Security Configuration ###
-- must turn of ```JSESSIONID``` generation  by setting ```sessionCreationPolicy``` to ```STATELESS```
+- must turn off ```JSESSIONID``` generation  by setting ```sessionCreationPolicy``` to ```STATELESS```
 
 ```
 .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 ```
 
-- then have to configure backend to send ```Authorization``` header to the frontend 
+- then have to configure backend to expose an ```Authorization``` header to the frontend 
 - in the cors configuration have to add
 
 ```
@@ -1246,12 +1251,12 @@ corsConfiguration.setExposedHeaders(Arrays.asList("Authorization"));
 ## 86 87 Security Filters and JWTs ##
 - sprinsecuritysec9/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
 ### Generating JWT ###
-- write filter to generate token
-- only want token generated on initial login
+- write a filter to generate the JWT
+- only want the JWT generated on initial login
 
 sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.java
 
-- filter will be added after the ```BasicAuthenticationFilter```
+- filter will be added after the ```BasicAuthenticationFilter```, so we can verify the user us valid and then create the token
 
 ```
 .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
@@ -1260,8 +1265,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ### Validating JWT ###
 - sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenValidatorFilter.java
 - write filter to validate token
-- want this to run on all authenticated requests except initial login
-- will be executed before the ```BasicAuthenticationFilter```, to validate the JWt before getting there
+- we want this to run on all authenticated requests except initial login
+- will be executed before the ```BasicAuthenticationFilter```, to validate the incoming JWT before getting to the authentication filter
 
 ```
  .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
@@ -1286,11 +1291,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
  ```
 
 
-## 89 Validating JWT is Working ##
+## 89 Validating the JWT is Working ##
 - with changes from this section should now see 
 
-   1. ```Authorization``` JWT in you application - session storage
-   2. Only th ```XSRF-TOKEN``` in the cookies, there should be no more ```JSESSIONID``` as we turned that off
+   1. JWT is stored in session storage with the key ```Authorization``` 
+   2. Only the ```XSRF-TOKEN``` is created and stored in cookies, there should be no more ```JSESSIONID``` as we turned that off
 
    *if you still have a ```JSESSIONID``` there is a good chance it is cached*
 
@@ -1299,11 +1304,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/jwt-filter-chain.png)
 
 ## 90 Validating JWT Expiration ##
-- if JWT is expired the backend will throw an ```ExpiredJWT``` exception and the user should log back in
-
-
-
-
+- If the  JWT is expired the backend will throw an ```ExpiredJWT``` exception and the user should log back in
+- the logic to check for this should be in our ```JWTTokenValidationFilter```
 # Section 10 Method Level Security #
 
 - compliments RBAC, does not replace 
@@ -1316,7 +1318,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 ## 92 Details About Method Invocation Authorization ##
 ![](./images/method-level-security-3.png)
-- accept spring expression language as well as role and authority methods
+- accepts spring expression language as well as any role and authority methods
 
 ![](./images/method-level-security-4.png)
 - post authorization is used to validate the data being returned from the method
@@ -1325,9 +1327,9 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 - spring uses spring [AOP](https://www.baeldung.com/spring-aop) at runtime to intercept method calls and ensure users have the correct permissions
 
 ## 93 Method Level Security with PreAuthorize ##
-- allow spring expression language
+- allows for use of spring expression language
 - most common to be used
-- exmaple sprinsecuritysec10/src/main/java/com/eazybytes/repository/LoanRepository.java
+- example sprinsecuritysec10/src/main/java/com/eazybytes/repository/LoanRepository.java
 
 ```
 @PreAuthorize("hasRole('User')")
@@ -1335,9 +1337,9 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 
 ## 94 Method Level Security with PostAuthorize ##
-- allow spring expression language
+- allows for use of spring expression language
 - sprinsecuritysec10/src/main/java/com/eazybytes/controller/LoansController.java
-
+- runs after the method, spring will prevent the anything from being return if the user does not have the correct permissions
 ```
 @PostAuthorize("hasRole('USER')")
 ```
@@ -1346,16 +1348,16 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/filter-authorization-1.png)
 ![](./images/post-filter.png)
 
-- **this is not Spring Security Filter**
+- **this is not related to Spring Security Filter**
 - can filter the method call based on the parameters being passed in
-- ```filterObject```, the method input, should alway be of type ```Collection```
-- could say, get this collection but don't return where the userName = "test"
+- ```filterObject```, the method input, should always be of type ```Collection```
+- could say, get this collection but don't return items where the userName = "test"
 
 
 
 ## 96 PreFilter Annotation ##
 ![](./images/filter-authorization-1.png)
-- for filtering parameters passed into a method
+- for filtering parameters passed into a method, ie: if they pass in 'test' then throw an error
 
 - sprinsecuritysec10/src/main/java/com/eazybytes/controller/ContactController.java
 
@@ -1364,21 +1366,21 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ```
 ## 97 PostFilter Annotation ##
 ![](./images/post-filter.png)
-- for filtering returned values from a method 
+- for filtering returned values from a method, ie: don't return any elements where the name is 'test'
 - sprinsecuritysec10/src/main/java/com/eazybytes/controller/ContactController.java
 
 ```
  @PostFilter("filterObject.contactName != 'Test'")
 ```
 
-# Section 11 Deep Dive Into Oauth2 and OpenID Connect ##
-- theory section
-- if you use microservices/multiple applications it can be better to have an authentication server instead of having authentication/authorization logic in every application
+# Section 11 Deep Dive Into Oauth2 and OpenID Connect #
+- All theory in this section, no corresponding code
+- if you use microservices/multiple applications it can be better to have an authentication server instead of configuring/maintaining authentication/authorization logic in every application
 
 ## 98 Problem OAuth2 is Trying to Solve ##
 ![](./images/intro-to-oauth2.png)
 ![](./images/oauth2-2.png)
-- by sharing a limited authorization token we can give the 3rd party access to the app without having to trust that application isnt going to mis-use their permissions
+- by sharing a limited authorization token we can give the 3rd party access to the app without having to trust that application isn't going to mis-use their permissions
 - could revoke these tokens 
 - there is a separate OAuth2 server handling the authentication and token creation
 
@@ -1397,7 +1399,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
    - PKCE - used for SPA
    - Client Credentials - server to server communication
    - Device Code - for IOT such as smart tv
-   - Refresh Token 
+   - Refresh Token - used to refresh the ```Access Token```
    - Implicit Flow (deprecated, will be remove with Oauth2.1)
    - Password Grant (deprecated, will be remove with Oauth2.1)
 
@@ -1408,11 +1410,13 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 ## 100 OAuth2 Terminology ##
 ![](./images/oauth2-terminology.png)
-- resource owner : the user who owns the resources being accessed
-- client : the third party app/service trying to interact with service that needs authentication
-- Authorization Server : responsible for authenticating user, resource owner has an account on this server
-- Resource Server : server where the resources the client wants to consume are located 
-   - depending on the size of the project the Authorization Server and Resource Server could be the same machine 
+- Resource Owner : the user who owns the resources being accessed
+- Client : the third party app/service trying to interact with the ```Resource Server``` on behalf of the ```Client```
+- Authorization Server : responsible for authenticating the ```Resource Owner``` 
+   -  ```Resource Owner``` has an account on this server
+   - also responsible for generating access tokens and redirecting back the the ```Client``` after authentication is complete
+- Resource Server : server where the resources the ```Client``` wants to consume are located 
+   - depending on the size of the project the ```Authorization Server``` and ```Resource Server``` could be the same machine 
 - Scopes : granular permissions, very similar to roles/authorities
 
 
@@ -1420,15 +1424,20 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/oauth2-sample-flow-1.png)
 ![](./images/oauth2-sample-flow-2.png)
 - fictional scenario for example
-- Must register app as a ```Client``` with the ```Authorization Server``` when you register as a ```Client``` you get a ```Client ID``` and ```Client Secret```
-- on login ```Client``` must redirect to the ```Authorization Server```, user credentials never shared with the ```Client```
-- Then ```Resource Owner``` asked if they consent to sharing resources with ```Client```
-- If the ```Resource Owner``` agrees then ```ACCESS TOKEN``` and ```REFRESH TOKEN``` are shared with the ```Client``` from the ```Authorization Server```
+
+### Configuring OAuth2 ###
+1.  Must register app as a ```Client``` with the ```Authorization Server```
+  - when you register as a ```Client``` you get a ```Client ID``` and ```Client Secret```
+
+2. on login ```Client``` must redirect to the ```Authorization Server```, user credentials are never shared with the ```Client```
+3.  Then ```Resource Owner``` asked if they consent to sharing resources with ```Client```
+4. If the ```Resource Owner``` agrees then an ```ACCESS TOKEN``` and ```REFRESH TOKEN``` are shared with the ```Client``` from the ```Authorization Server```
    - ```Authorization Server``` decides how long the tokens are good for
-- ```Client``` sends api requests with ```ACCESS TOKEN``` to the ```Resource Server```, verifies the token with the ```Authorization Server```
-   - the ```ACCESS TOKEN``` is scoped to only the permissions needed by the ```Client```, the ```Client``` cannot update account credentials etc...
-- ```Resource Server``` sends requested resources to ```Client``` 
-- most times you will be redirected back to the ```Client``` after providing consent
+5. ```Client``` sends an api requests with ```ACCESS TOKEN``` to the ```Resource Server```. The ```Resource Server``` verifies the token is valid
+   - the ```ACCESS TOKEN``` is scoped to only the permissions needed by the ```Client```.
+   - the ```Client``` cannot update account credentials etc...
+6. ```Resource Server``` sends requested resources to ```Client``` 
+7.  most times you will be redirected back to the ```Client``` after providing consent
 
 ### 102 Demo of Sample Flow ###
 - sign up for any account with google, facebook, github etc...
@@ -1443,8 +1452,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 ## 103 Deep Dive and Demo Authorization Code Grant Type Flow in OAuth2 ##
 - have to choose grant type based on use case
-- use when we have an end user and 2 resources trying to communicate with each other on behalf of the user
-- more secure, has superseded ```Implicit Grant```, 
+- use when we have a ```Resource Owner```, a ```Client``` and a ```Resource Server```, where the ```Client``` wants to communicate with the ```Resource Server``` behalf of the ```Resource Owner```
+- more secure and has superseded ```Implicit Grant```, 
 
 ![](./images/ouath-flow-authorization-grant.png)
 
@@ -1453,8 +1462,6 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 5. ```ClientID``` and ```ClientSecret```  shared from client to ```Authorization Server```
 
 ![](./images/oauth2-authorization-code-3.png)
-
-- more secure then ```Implicit Grant Type```
 
 
 1. ```Resource Owner``` requests login
@@ -1472,7 +1479,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 
 ## 105 Deep Dive and Demo Implicit Grant Flow in OAuth2 ##
-- deprecated, not to be use for production
+- **Deprecated, not to be used for production**
 - will be removed from OAuth2.1
 
 ![](./images/ouath2-implicit-grant-flow-1.png)
@@ -1480,7 +1487,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - less secure because there is no way to send the ```ClientSecret``` in get requests outside of the Url. This would exposing the client credentials it to the world
 - ```Access Token``` would also come in the URL as well, exposed it
-- No was to reliably prevent a malicious user from inject in a different token
+- No way to reliably prevent a malicious user from inject in a different token
 
 ### Demo ###
 [oauth playground](https://www.oauth.com/playground/)
@@ -1491,11 +1498,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - also know as ```Resource Owner Credentials Grant```
 - no recommended for production
-- in this case ```Resource Owner``` credentials are given dirctly to the ```Client```
+- in this case ```Resource Owner``` credentials are given directly to the ```Client```
 - the ```Client``` then posts the ```Resource Owner``` credentials, ```ClientID``` and ```ClientSecret``` to the ```Authorization Server```
-- ```Authorization Server``` sends back an ```Access Token``` to the ```Client``` which the ```Client``` can then use to access the ```Resouce Server``` on behalf of the ```Resource Owner```
+- ```Authorization Server``` sends back an ```Access Token``` to the ```Client``` which the ```Client``` can then use to access the ```Resource Server``` on behalf of the ```Resource Owner```
 
-- could be used if all the parties are part of the sam organization
+- could be used if all the parties are part of the same organization, LAN
 - being removed in Oauth2.0+
 
 
@@ -1507,6 +1514,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/oauth2-client-credentials-1.png)
 ![](./images/oauth2-client-credentials-2.png)
 
+- this is for server to server communication only
 - only have a ```Client```, ```Auth Server``` and ```Resource Server```, no user 
 - grant_type will be 'client_credentials'
 
@@ -1514,16 +1522,16 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 1. ``` Client``` sends request to ```Auth Server```, it states there is no end user and provides ```ClientID``` and ```Client Secret```
 2. ```Auth Server```, provides ```Access Token``` to ```Client```
 3. ```Client``` sends request to ```Resource Server``` with the ```Access Token```
-4. If all good ```Resource Server``` sends back resources to the ```Client``` 
+4. If all is good, the ```Resource Server``` sends back resources to the ```Client``` 
 
 ## 108 Deep Dive of Refresh Token Grant Type Flow in OAuth2 ##
 ![](./images/oauth2-refresh-token-1.png)
 ![](./images/oauth2-refresh-token-2.png)
 
 
-- inside the response after a successfully authentication, there is usually a ```Refresh Token```
-- will be required to refresh the ```Access Token``` after x amount of time
-- ```Client``` cna use the ```Refresh Token``` to request a new ```Access Token``` from the ```Auth Server``` if the ```Refresh Token``` is valid
+- inside the response after a successfully authenticating, there is usually a ```Refresh Token```
+- The ```Refresh Token``` will used to refresh the ```Access Token``` after x amount of time
+- ```Client``` uses the ```Refresh Token``` to request a new ```Access Token``` from the ```Auth Server``` if the ```Refresh Token``` is valid then a new ```Access Token``` is provided
   - does not require end user to login again
 - it is the job of the ```Client``` application to implement this refresh token configuration
 
@@ -1556,7 +1564,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - OIDC (Open ID Connect) sits on top of OAuth2 for authentication, and brings standards for sharing identity details
 - there is no way with OAuth2 to know details about the client, ie: username, email etc...
-- ```Authorization Server``` is smart enough to know that if ```openid``` exists in the ```SCOPE```, then it returns both an ```Access Token``` and ```ID Token```
+- The ```Authorization Server``` is smart enough to know that if ```openid``` exists in the ```SCOPE```, then it returns both an ```Access Token``` and ```ID Token```
 
 ![](./images/openID-connect-2.png)
 
@@ -1566,12 +1574,12 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 
 # Section 12 Implementing OAuth2 Using Spring Security #
-- using a separate app for this section only
+- using a separate app for this section only - ./12_section/springsecOAUTH2GitHub
 
 ## 111 Registering Client Details With Github ##
 - will use Github as OAuth2 ```Auth Server```
 
-- spring boot app will be the ```Client``` in this scenario, 
+- the spring boot app will be the ```Client``` in this scenario
 
 - sign into github -> settings -> developer settings -> OAuth Apps -> Register New Application
 
@@ -1596,7 +1604,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 - passing ```ClientID``` and ```ClientSecret``` through env vars in the application properties
 
 ### Environment Varaibles ###
-- have to add to either bas profile 
+- have to add to either bash profile 
 
 ```
 export github_client_id=myid
@@ -1610,7 +1618,57 @@ export github_client_secret=mysecret
 
 ## 113 Running Spring App with Github OAuth2 ##
 
-- if configured correctly you should be redirected to github login page
-- good for small apps but limits your controll, does not allow for creation of roles/scopes/users etc...
+- if configured correctly you should be redirected to github login page, be able to login, grant your app access to your github account and be redirected
+- good for small apps but, limits your control and does not allow for creation of roles/scopes/users etc...
 
 # Section 13 Implementing OAuth2 with Keycloak #
+
+## 114 OAuth2 in EazyBank App ##
+
+![](./images/eazybank-ouath2-config.png)
+- will be using the Authorization Code grant type
+
+
+## 115 Introduction to Keycloak Auth Server ##
+- https://www.keycloak.org/
+- an authorization server 
+- other are okta and amazon congnito to name a few
+- open source
+- very stable and continually updated
+- maintained by RedHat
+
+## 116 Installing Keycloak and Setting Up Admin Account ##
+- download the ZIP and extract it 
+- openkJDK getting [started docs](https://www.keycloak.org/getting-started/getting-started-zip)
+
+## 117 Creating KeyCloak Realms ##
+
+## 118 Creating Client Credentials ##
+
+## 119 Setting Up EazyBank Resource Server ##
+
+## 120 Getting Access Token From Keycloak with Client Credentials Grant Type ##
+
+## 121 Passing Access Token to Resource Server Through Postman ##
+## 122 Authrorization Code Grant Type with EazyBank ##
+
+## 123 Creating Client and User Details in KeyCloak ##
+
+## 124 Testing Authorization Code Grant Type with Postman ##
+
+## 125 126 Authorization Code with PKCE ##
+
+## 127 Creating Public Facing Client Details in Keycloak Server ##
+
+## 128 Implementing PKCE Authorization Code Grant Type in Angular UI Part ##
+
+### Part 1 ###
+
+### 129 Part 2 ###
+
+## 130 Testing PKCE ##
+
+## 131 Important KeyCloak Features ##
+
+
+## 132 Social Login Integration with Keycloak Server ##
