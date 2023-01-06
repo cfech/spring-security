@@ -51,7 +51,7 @@ and exclude from the build
 
 ## Spring Security Out of the Box ##
 - as soon as you add the spring security dependency, without doing anything it will start intercepting calls 
-- will show a login screen, user: ```user```, password is printed in the console
+- will show a login screen, user: `user`, password is printed in the console
 
 ## 6 Static Credentials ##
 [common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html)
@@ -82,16 +82,16 @@ spring.security.user.password=testing
 
 ![spring security architecture](./images/spring-internal-flow.png)
 1. user enters credentials
-2. Filters create authentication object such as the ```UsernamePasswordAuthenticationToken```
+2. Filters create authentication object such as the `UsernamePasswordAuthenticationToken`
 3. Authentication object handed to the authentication manager
-4. Authentication Manager, which is implemented by ```ProviderManager``` checks available authentication provider
+4. Authentication Manager, which is implemented by `ProviderManager` checks available authentication provider
 5. Authentication Providers decide if user is valid
   - can be many authentication providers
   - can write logic in authentication providers to decide how to authenticate
   - Authentication manager will try all authentication providers, not just one
-  - Can leverage spring security classes ```UserDetailsManager``` and ```UserDetailsService```
-6. Whatever ```PasswordEncoder``` bean encodes passwords as to not store in plain text
-  - works with ```UserDetailsManager/Service``` to decide if the user should be authenticated
+  - Can leverage spring security classes `UserDetailsManager` and `UserDetailsService`
+6. Whatever `PasswordEncoder` bean encodes passwords as to not store in plain text
+  - works with `UserDetailsManager/Service` to decide if the user should be authenticated
 7. Sends response back to authentication manager
 8. Forwards back to security filters
 9. With an update Authentication Object, the filters store it in the security context
@@ -122,12 +122,12 @@ spring.security.user.password=testing
 
 ## 17 Default Spring Security Configuration ##
 - spring security protects all paths by default 
-- this is configured in the ```defaultSecurityFilterChain``` bean
+- this is configured in the `defaultSecurityFilterChain` bean
 
 
 ![default chain](./images/default-securit-filter-chain.png)
 
-- ```http.authorizeRequests().anyRequest().authenticated();``` - says authorize any request made to the backend 
+- `http.authorizeRequests().anyRequest().authenticated();` - says authorize any request made to the backend 
 
 - from the comments 
 
@@ -178,8 +178,8 @@ The default configuration for web security. It relies on Spring Security's conte
 # Section 3 Defining and Managing Users #
 ## 22 Approach 1 Configuring Users Using InMemoryUserDetailsManager ##
 - not for production
-- can define multiple users along with their authorities with the help fo ```InMemoryUserDetailsManager``` and ```UserDetails```
-- use the ```withDefaultPasswordEncoder()``` method, this method is deprecated
+- can define multiple users along with their authorities with the help fo `InMemoryUserDetailsManager` and `UserDetails`
+- use the `withDefaultPasswordEncoder()` method, this method is deprecated
 
 ![approach1](./images/configuring-users-approach-1.png)
 
@@ -187,7 +187,7 @@ The default configuration for web security. It relies on Spring Security's conte
 
 ## 23 Approach 2 Configuring Users Using inMemoryUserDetailsManager ##
 - not for production
-- here we create a bean of ```NoOpPasswordEncoder```, which implements ```PasswordEncoder```, this bean will automatically be picked up by spring
+- here we create a bean of `NoOpPasswordEncoder`, which implements `PasswordEncoder`, this bean will automatically be picked up by spring
 
 ![approach 2](./images/in-memory-user-approach-2.png)
 
@@ -197,11 +197,11 @@ The default configuration for web security. It relies on Spring Security's conte
 
 ![spring security architecture](./images/spring-internal-flow.png)
 
-- the ```DaoAuthenticationProvider``` that comes with spring will look to user the ```inMemoryUserDetailsManager```, ```JdbcUserDetailsManager``` and ```LdapUserDetailsManager``` 
+- the `DaoAuthenticationProvider` that comes with spring will look to user the `inMemoryUserDetailsManager`, `JdbcUserDetailsManager` and `LdapUserDetailsManager` 
 - the details managers are sample implementations provided by spring security
-- The ```UserDetails``` interface allows us to represent the User as a ```User``` class that implements the ```UserDetails```
-- When you return a new class of type ```...UserDetailsManager```, the ```loadUserByUsername``` method is called
-  - this method returns ```UserDetails``` which implements ```UserDetailsManager ``` which extends ```UserDetailsService```
+- The `UserDetails` interface allows us to represent the User as a `User` class that implements the `UserDetails`
+- When you return a new class of type `...UserDetailsManager`, the `loadUserByUsername` method is called
+  - this method returns `UserDetails` which implements `UserDetailsManager ` which extends `UserDetailsService`
 
 ## 25 Deep Dive of UserDetails Interface and User Class ##
 - holds methods for 
@@ -213,50 +213,50 @@ The default configuration for web security. It relies on Spring Security's conte
   6. isCredentialsNonExpired()
   7. isEnabled()
 
-- sample of this interface are the ```User``` Class, we can use this or implement our own ```userDetails```
+- sample of this interface are the `User` Class, we can use this or implement our own `userDetails`
 
 - this object is readOnly, there are no setters, once the object is created through the constructor it is immutable
 - 
 
 ![auth vs user details](./images/authentication-vs-userdetails.png)
 - identify if authentication is successful or not inside the authentication providers
-- ```AuthenticationProvider``` will convert the userDetails into the Authentication Token, after fetched from the database and authenticated
-- this is done by default in the ```AbstractUserDetailsAuthenticationProvider.java```,  ```authenticate``` method, if authenticated then it called the ```createSuccessAuthentication``` method witch takes in an auth token, user and returns back a populated authentication token
+- `AuthenticationProvider` will convert the userDetails into the Authentication Token, after fetched from the database and authenticated
+- this is done by default in the `AbstractUserDetailsAuthenticationProvider.java`,  `authenticate` method, if authenticated then it called the `createSuccessAuthentication` method witch takes in an auth token, user and returns back a populated authentication token
 
 ## 26 Deep Dive of UserDetailsService and UserDetailsManager ##
-- ```UserDetailsService```, holds the method ```loadUserByUsername``` which loads the user from the database
+- `UserDetailsService`, holds the method `loadUserByUsername` which loads the user from the database
 - only username is loaded, not the password, which we dont want to move over the network
-- ```UserDetailsService```is extended by the ```UserDetailsManager``` which gives the ability to perform CRUD operations on users
+- `UserDetailsService`is extended by the `UserDetailsManager` which gives the ability to perform CRUD operations on users
    - offers a userExists() method that tells if that user already exists in the system
 
 ## 27 Deep Dive of UserDetailsManager implementation classes ##
-- ```inMemoryUserDetailsManager```, ```JdbcUserDetailsManager``` and ```LdapUserDetailsManager```  are the most commonly used and examples are provided by spring
+- `inMemoryUserDetailsManager`, `JdbcUserDetailsManager` and `LdapUserDetailsManager`  are the most commonly used and examples are provided by spring
 
 
 ### InMemoryUserDetailsManager ###
 
-- for ```InMemoryUserDetailsManager``` the ```createUser()``` method is called through the constructor 
-- holds the ```loadUserByUsername()``` method 
-- ```DaoAuthenticationProvider``` knows which details manager to invoke by which beans are created 
-- ```InMemoryUserDetailsManager``` used mostly for dev and demo
+- for `InMemoryUserDetailsManager` the `createUser()` method is called through the constructor 
+- holds the `loadUserByUsername()` method 
+- `DaoAuthenticationProvider` knows which details manager to invoke by which beans are created 
+- `InMemoryUserDetailsManager` used mostly for dev and demo
 
 ### JdbcUserDetailsManager ###
 - most common for production 
 - spring security assumes a specific table structure, they have programmed queries for this configuration 
-- table name must be ```users```
+- table name must be `users`
 - there is a default schema included in the class, pointing to a ddl file. 
-- can use the ```users.ddl``` file to create the database architecture
+- can use the `users.ddl` file to create the database architecture
 
 
 ### Group Manager ###
 - interface
-- implemented by ```JdbcUserDetailsManager```
+- implemented by `JdbcUserDetailsManager`
 - helps create and add users to groups for RBAC
 
 
 ### LdapUserDetailsManager ###
 - not as common
-- still has ```loadUserByUserName```
+- still has `loadUserByUserName`
 - have to have an LDAP server configured
 
 ### Adding LDAP ###
@@ -278,16 +278,16 @@ The default configuration for web security. It relies on Spring Security's conte
 
 - can just do this in docker 
 
-``` docker pull mysql```
+` docker pull mysql`
 
-```docker run --name spring-security-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=pwd -e useSSL=false -d mysql```
+`docker run --name spring-security-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=pwd -e useSSL=false -d mysql`
 
 ### Connecting with DBeaver ###
 - host = localhost
 - username = root
 - pwd = pwd
 - port = 3306 
-- go to driver properties -> set ```allowPublicKeyRetrieval``` to true
+- go to driver properties -> set `allowPublicKeyRetrieval` to true
 - https://stackoverflow.com/questions/61749304/connection-between-dbeaver-mysql
 
 ## 29 Connecting to DB ##
@@ -359,7 +359,6 @@ spring.datasource.url=jdbc:mysql://localhost/eazybank
 spring.datasource.username=root
 spring.datasource.password=pwd
 
-
 #print sql in the console, not for production
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
@@ -377,7 +376,7 @@ spring.jpa.properties.hibernate.format_sql=true
 
 - Spring boot creates an object of type data source in memory when we add jbdc information to class path and application properties
 
-- can have multiple ```UserDetailsManagers``` if have multiple ```AuthenticationProviders```
+- can have multiple `UserDetailsManagers` if have multiple `AuthenticationProviders`
 
 
 ## 31 Creating Custom Authentication Tables ##
@@ -386,13 +385,13 @@ spring.jpa.properties.hibernate.format_sql=true
 
 ## 32 Creating JPA Entity and Repo For New Table ##
 - have to create a repository
-```
-sprinsecuritysec3/src/main/java/com/eazybytes/repository/CustomerRepository.java
-```
+
+- sprinsecuritysec3/src/main/java/com/eazybytes/repository/CustomerRepository.java
+
 - have to create a model
-```
-sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
-```
+
+- sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
+
 
 ### Annotations ###
 - have to add 2 annotations to spring application if repositories or entities are not in the main package
@@ -410,15 +409,15 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 ```
 
 ## 33 Create Custom Implementation of UserDetailsService ##
-- if we are using our own database setup, we must override the default ```UserDetailsService``` and write logic for loading the user in the ```loadUserByUsername``` method
+- if we are using our own database setup, we must override the default `UserDetailsService` and write logic for loading the user in the `loadUserByUsername` method
 
 - sprinsecuritysec3/src/main/java/com/eazybytes/config/EazyBankUserDetails.java
 
 ### Multiple UserDetailsService ###
-- if you have ```userDetailsService``` it will confuse the default ```DaoAuthenticationProvider```, can have multiple details services but have to have custom ```AuthenticationProvider```
+- if you have `userDetailsService` it will confuse the default `DaoAuthenticationProvider`, can have multiple details services but have to have custom `AuthenticationProvider`
 
 ## 34 Allowing New User Registration ##
-- Could override the ```UserDetailsManager``` ```createUser() ``` method 
+- Could override the `UserDetailsManager` `createUser() ` method 
 - see for example sprinsecuritysec3/src/main/java/com/eazybytes/controller/LoginController.java
 - have to permit non authenticated users to hit the /register path
 - this point can create with postman
@@ -430,7 +429,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 }
 ```
 
-- successful response will be ```Given user details are successfully registered```
+- successful response will be `Given user details are successfully registered`
 
 ## Update Sequence With Custom  JBDC User Details Service ##
 
@@ -445,13 +444,13 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 - default password encoder uses plain text
 ![password encoding](./images/how-passwords-are-validated.png)
 
-- ```AbstractUserDetailsAuthenticationProvider``` - ```authenticate()``` method 
-- runs some ```preAuthenticationChecks()``` such as checking for disabled, expired etc
-- then runs ```DaoAuthenticationProvider``` - ```additionalAuthenticationChecks()```
-   - ```additionalAuthenticationChecks()``` calls the ```matches()``` method defined in every password encoder 
-   - ```matches``` takes in the password the user typed and the password loaded from the database
+- `AbstractUserDetailsAuthenticationProvider` - `authenticate()` method 
+- runs some `preAuthenticationChecks()` such as checking for disabled, expired etc
+- then runs `DaoAuthenticationProvider` - `additionalAuthenticationChecks()`
+   - `additionalAuthenticationChecks()` calls the `matches()` method defined in every password encoder 
+   - `matches` takes in the password the user typed and the password loaded from the database
    - if passwords match you are authenticated
-   - if not ```BadCredentialsException``` is thrown
+   - if not `BadCredentialsException` is thrown
 
 ### NoOpPasswordEncoder ###
 - default password encoder
@@ -516,7 +515,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 
 
 ### SCryptPasswordEncoder ###
-- advance version of ```BCryptPasswordEncoder```
+- advance version of `BCryptPasswordEncoder`
 - uses both cpu and ram
 - makes brute force attacks more difficult due to resource restriction
 - more secure
@@ -528,7 +527,7 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 - most secure
 
 ## 42 Register New User With ByCrypt Password Encoder ##
-- create a passwordEncoder bean with the ```BCryptPasswordEncoder```
+- create a passwordEncoder bean with the `BCryptPasswordEncoder`
 
 ```
     @Bean
@@ -541,11 +540,11 @@ sprinsecuritysec3/src/main/java/com/eazybytes/model/Customer.java
 - passwords are not hashed when the creating an new user ex: 04_section/sprinsecuritysec4/src/main/java/com/eazybytes/controller/LoginController.java
 
 - by default does 10 rounds of hashing but this can be configured
-- could change options if wanted to utilizing different constructors of ```BCryptPasswordEncoder```
+- could change options if wanted to utilizing different constructors of `BCryptPasswordEncoder`
 - min rounds is 4, max is 31, default is 10
 - could pass a salt if we had one 
 
-- from javadoc of ```BCryptPasswordEncoder```
+- from javadoc of `BCryptPasswordEncoder`
 
 ```
 Implementation of PasswordEncoder that uses the BCrypt strong hashing function. Clients can optionally supply a "version" ($2a, $2b, $2y) and a "strength" (a.k.a. log rounds in BCrypt) and a SecureRandom instance. The larger the strength parameter the more work will have to be done (exponentially) to hash the passwords. The default value is 10.
@@ -555,8 +554,8 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 
 ![store pwd](./images/password_with_bcrypt.png)
 
-- plain text passwords will no longer with when ```BCryptPasswordEncoder``` is enabled
-- ```BCryptPasswordEncoder``` knows this is not a BCrypt encoded password
+- plain text passwords will no longer with when `BCryptPasswordEncoder` is enabled
+- `BCryptPasswordEncoder` knows this is not a BCrypt encoded password
 
 - will give error in console
 
@@ -565,56 +564,56 @@ Implementation of PasswordEncoder that uses the BCrypt strong hashing function. 
 ```
 
 ## 43 Login With ByCrypt Password Encoder ##
-- if using the default ```DaoAuthenticationProvider``` then no additional configuration is needed. ```DaoAuthenticationProvider```  will pick up the ```BCryptPasswordEncoder``` bean and  handle calling functions for password comparison 
+- if using the default `DaoAuthenticationProvider` then no additional configuration is needed. `DaoAuthenticationProvider`  will pick up the `BCryptPasswordEncoder` bean and  handle calling functions for password comparison 
 
 - could define your own password encoder by implementing PasswordEncoder interface but not recommended
 
 # Section 5 Authentication Providers #
 
 ## 44 Why create our own authentication provider ##
-- the default authentication provider is ```DaoAuthenticationProvider```
-- this is a flexible class that allows us to change ```UserDetailsService``` as well as ```PasswordEncoder```, however it does not support all use cases
+- the default authentication provider is `DaoAuthenticationProvider`
+- this is a flexible class that allows us to change `UserDetailsService` as well as `PasswordEncoder`, however it does not support all use cases
 - we may want to create our own authentication logic ie: only allowed age or countries
 - may want multiple authentication providers
 
 ![custom ap](./images/why-custom-authentication-provider.png)
 
 ## 45 Authentication Provider methods ##
-- ```authenticate()``` method actually kicks off the authenticate process
+- `authenticate()` method actually kicks off the authenticate process
    - returns an authentication token with a user that is either authenticated or not
-- ```supports()``` - tells which type of authentication objects are supported
-   - called inside the ```ProviderManager```, which implements the ```AuthenticationManager``` interface, to check if the current authenticationProvider supports the type of authenticationToken that is passed in
+- `supports()` - tells which type of authentication objects are supported
+   - called inside the `ProviderManager`, which implements the `AuthenticationManager` interface, to check if the current authenticationProvider supports the type of authenticationToken that is passed in
 
-- ```DaoAuthenticationProvider``` supports ```UsernamePasswordAuthenticationToken``` out of the box
+- `DaoAuthenticationProvider` supports `UsernamePasswordAuthenticationToken` out of the box
 
 - other auth tokens provided by spring
-1. ```TestingAuthenticationToken```
-2. ```AnonymousAuthenticationToken```
-3. ```RememberMeAuthenticationToken```
+1. `TestingAuthenticationToken`
+2. `AnonymousAuthenticationToken`
+3. `RememberMeAuthenticationToken`
 
 ![auth provider details](./images/auth-provider-details-1.png)
 
 ## 46 Implementing Custom Authentication Provider ##
-- since we created our own custom ```AuthenticationProvider```, we no longer need a ```userDetailsService```. If wa wanted to make our custom ```AuthenticationProvider``` depend on a ```userDetailsService```, like the default ```DaoAuthenticationProvider``` then we could use on, but not necessary as this logic is now in our ```EazyBankUsernamePwdAuthenticationProvider```, which is talking directly to the CrudRepository via DI
+- since we created our own custom `AuthenticationProvider`, we no longer need a `userDetailsService`. If wa wanted to make our custom `AuthenticationProvider` depend on a `userDetailsService`, like the default `DaoAuthenticationProvider` then we could use on, but not necessary as this logic is now in our `EazyBankUsernamePwdAuthenticationProvider`, which is talking directly to the CrudRepository via DI
 
 
 - example : sprinsecuritysec5/src/main/java/com/eazybytes/config/EazyBankUsernamePwdAuthenticationProvider.java
 
 ## 47 Testing our Custom Authentication Provider ##
-- ```EazyBankUsernamePwdAuthenticationProvider.authenticate()``` is called by the spring security ```ProviderManager```
-- after authentication is completed based on logic in the ```authenticate()``` method  the ```ProviderManager``` does some cleanup including deleting the credentials we were comparing against
+- `EazyBankUsernamePwdAuthenticationProvider.authenticate()` is called by the spring security `ProviderManager`
+- after authentication is completed based on logic in the `authenticate()` method  the `ProviderManager` does some cleanup including deleting the credentials we were comparing against
 - can also have an event published (an use this to send a push notification/email)
 
 ## 48 Spring Security Sequence Flow with Custom AuthenticationProvider ##
 
-```Provider Manager``` implements ```AuthenticationManager```, they are interchangeable
+`Provider Manager` implements `AuthenticationManager`, they are interchangeable
 
 ![flow with custom authentication provider](./images/flow-with-custom-authentication-provider.png)
 
-- SpringSecurityFilter and ```AuthenticationManager``` do their own job, we do not override those
-- we changed the authenticationProvider and its methods (which are called by the ```AuthenticationManager```), incorporating the database call into our custom ```EazyBankUsernamePwdAuthenticationProvider```. Since we were no longer using the default ```DaoAuthenticationProvider```, and incorporated the ```CustomerRepository``` logic, we did not need a ```UserDetailsService```/ ```UserDetailsManager```
+- SpringSecurityFilter and `AuthenticationManager` do their own job, we do not override those
+- we changed the authenticationProvider and its methods (which are called by the `AuthenticationManager`), incorporating the database call into our custom `EazyBankUsernamePwdAuthenticationProvider`. Since we were no longer using the default `DaoAuthenticationProvider`, and incorporated the `CustomerRepository` logic, we did not need a `UserDetailsService`/ `UserDetailsManager`
 
-- Also overrode the ```PasswordEncoder``` to use the ```BCryptPasswordEncoder```
+- Also overrode the `PasswordEncoder` to use the `BCryptPasswordEncoder`
 
 ![flow with custom authentication provider](./images/flow-with-custom-authentication-provider-simple.png)
 
@@ -808,7 +807,7 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 
 ## 53 creating A New User With Postman ##
 
-- can post to ```localhost:8888/register```
+- can post to `localhost:8888/register`
 ```
 {
     "name": "John Doe",
@@ -839,7 +838,7 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 ![](./images/cors-solution-1.png)
 
 - The browser sends a preflight request to the server and this is where origin data is communicated
-- can use the ```@CrossOrigin``` annotation
+- can use the `@CrossOrigin` annotation
 - could explicitly configure it to an endpoint or to '*'
 - It may not be feasible to do this for every single controller in an application
 
@@ -855,7 +854,7 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 ## 58 Demo of CSRF Protection from Spring Security ## 
 - Cross Site Request Forgery
 - Spring security blocks updates to post/put operations that update data by default 
-- could turn it off with ```http().csrf().disable()``` , not for production
+- could turn it off with `http().csrf().disable()` , not for production
 
 - if this is on and not configured and posts will get a 401, have to explicitly say who is allowed to post/put
 
@@ -877,11 +876,11 @@ VALUES (2, 123456, 'Savings', '123 Main Street, New York', CURDATE());
 ```
 csrf().ignoringRequestMatchers("/contact", "/register")
 ```
-- use to be ```ignoreAntMatchers()```
+- use to be `ignoreAntMatchers()`
 
 ## 62 Implementing CSRF Token Solution ##
-- by default spring ```CookieCsrfTokenRepository``` will create a token with the name ```XSRF-TOKEN```
-- Sinec Spring v3 we need a ```OncePerRequestFilter``` to create the header on each request
+- by default spring `CookieCsrfTokenRepository` will create a token with the name `XSRF-TOKEN`
+- Sinec Spring v3 we need a `OncePerRequestFilter` to create the header on each request
 
 - [what is once per requests filter](https://www.baeldung.com/spring-onceperrequestfilter)
 - sprinsecuritysec7/src/main/java/com/eazybytes/filter/CsrfCookieFilter.java
@@ -932,9 +931,9 @@ validateUser(loginForm: NgForm) {
 ```
 
 ### Basic Authentication ##
-- with this configuration we now go through the ```BasicAuthenticationFilter``` as we post authentication to the ```/user``` endpoint
-- the ```BasicAuthenticationFilter``` calls the ```ProviderManager``` which calls the ```EazyBankUsernamePwdAuthenticationProvider.authenticate()``` method, this fetches the user and does the authentication by calling ```PasswordEncoder.matches()``` method, if it does match then the ```UsernamePasswordAuthenticationToken``` constructor si called which creates the auth token and sets authenticated to true
-- the authentication information is encoded on a ```Authorization Basic:``` header
+- with this configuration we now go through the `BasicAuthenticationFilter` as we post authentication to the `/user` endpoint
+- the `BasicAuthenticationFilter` calls the `ProviderManager` which calls the `EazyBankUsernamePwdAuthenticationProvider.authenticate()` method, this fetches the user and does the authentication by calling `PasswordEncoder.matches()` method, if it does match then the `UsernamePasswordAuthenticationToken` constructor si called which creates the auth token and sets authenticated to true
+- the authentication information is encoded on a `Authorization Basic:` header
 - this is not recommend for production apps as the username and password are not encrypted on the header, they only exist in as base 64
 
 # Section 7 Authorization #
@@ -944,8 +943,8 @@ validateUser(loginForm: NgForm) {
 ## 65 How Authorities Are Stored In Spring Security ##
 ![](./images/authorities_vs_roles.png)
 ![](./images/how_are_authorites_stored.png)
-- authorities are passed to ```UsernamePasswordAuthenticationToken``` upon creation as an unmodifiable list
-- authorities and roles are very similar and used to create ```GrantedAuthorities```
+- authorities are passed to `UsernamePasswordAuthenticationToken` upon creation as an unmodifiable list
+- authorities and roles are very similar and used to create `GrantedAuthorities`
 
 
 ## 66 Creating New Table Authorities ##
@@ -953,9 +952,9 @@ validateUser(loginForm: NgForm) {
 - see ./database_seed.sql
 
 ## 67 Backend Changes to Load Authorities ##
-- have to create a new entity ```Authority``` to account for new table in db
+- have to create a new entity `Authority` to account for new table in db
 - sprinsecuritysec7/src/main/java/com/eazybytes/model/Authority.java
-- have to map ```Authority``` model, ```@manyToOne``` to ```Customer``` model
+- have to map `Authority` model, `@manyToOne` to `Customer` model
 - this will pull authorities based on primary/foreign key from the db and map them to the customer object upon request of the customer
 
 
@@ -964,14 +963,14 @@ validateUser(loginForm: NgForm) {
 - sprinsecuritysec7/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
 
 ![](./images/configuring_authorites.png)
-- ```hasAuthority``` - have to have the exact authority
-- ```hasAnyAuthority```, if they have any of the acceptable ones
-- if neither of above options work use ```access()``` which allows us to configure using spring expression language
+- `hasAuthority` - have to have the exact authority
+- `hasAnyAuthority`, if they have any of the acceptable ones
+- if neither of above options work use `access()` which allows us to configure using spring expression language
 
 
 ![](./images/config_authorities.png)
-- can invoke after ```requestMatchers```
-- ```requestMatchers``` replaced ```antMatchers``` in spring v 3
+- can invoke after `requestMatchers`
+- `requestMatchers` replaced `antMatchers` in spring v 3
 
 - see example 
 
@@ -1008,16 +1007,16 @@ validateUser(loginForm: NgForm) {
 ![](./images/authorities_vs_roles.png)
 - authority is one individual privilege (fine grained)
 - role is a group of privileges/actions (course grained)
-- roles also us ```GrantedAuthority``` and ```SimpleGrantedAuthority```
-- when using roles it should awalys start with the ```ROLE_``` prefix as to differentiate between authorities and roles
+- roles also us `GrantedAuthority` and `SimpleGrantedAuthority`
+- when using roles it should awalys start with the `ROLE_` prefix as to differentiate between authorities and roles
 
 ## 71 and 72 Configuring Roles Authorization ##
 - sprinsecuritysec7/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
 
 ![](./images/role_configuration.png)
-- ```hasRole``` - have to have the exact authority
-- ```hasAnyRole```, if they have any of the acceptable ones
-- if neither of above options work use ```access()``` which allows us to configure using spring expression language
+- `hasRole` - have to have the exact authority
+- `hasAnyRole`, if they have any of the acceptable ones
+- if neither of above options work use `access()` which allows us to configure using spring expression language
 - **DO NOT USE THE ROLE PREFIX IN CODE, spring adds the prefix value**
 
 ex: 
@@ -1028,7 +1027,7 @@ ex:
 ![](./images/role_sequence_flow.png)
 
 ### Other methods ###
-- could use ```hasIPAddress``` to really secure the app (may have bee deprecated in version 3)
+- could use `hasIPAddress` to really secure the app (may have bee deprecated in version 3)
 
 # Section 8 Custom Spring Filters #
 
@@ -1056,17 +1055,17 @@ ex:
 logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
 ```
 
-- logging level also turns on ```logger.isDebugEnabled```
+- logging level also turns on `logger.isDebugEnabled`
 
 ## 75 Creating Custom Filters ##
 
 ![](./images/implementing_custom_filters.png)
 
-- ``` Filter``` interface exposes 
-  - ```init()```: empty by default, runs on creation of filter 
-  - ```destroy()```: empty by default runs on destruction of filter
-  - ```doFilter()```: the main method of a filter, that must be overridden when creating a custom filter
-  - ```doFilterInternal()```: another method, which is called by ```doFilter()```, we have to override this in some cases when we cannot overide the normal ```doFilter()```, such as the ```OncePerRequestFiler```
+- ` Filter` interface exposes 
+  - `init()`: empty by default, runs on creation of filter 
+  - `destroy()`: empty by default runs on destruction of filter
+  - `doFilter()`: the main method of a filter, that must be overridden when creating a custom filter
+  - `doFilterInternal()`: another method, which is called by `doFilter()`, we have to override this in some cases when we cannot overide the normal `doFilter()`, such as the `OncePerRequestFiler`
 
 ## 76 77 78 Adding Custom Filters ##
 - sprinsecuritysec8/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
@@ -1081,7 +1080,7 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
 
 - create the new filter: sprinsecuritysec8/src/main/java/com/eazybytes/filter/RequestValidationBeforeFilter.java
 
-- also have to add code to ```defaultSecurityFilterChain``` to add in the new filter
+- also have to add code to `defaultSecurityFilterChain` to add in the new filter
 
 ```
  //adding custom validation filter before the BasicAuthenticationFilter in the filter chain
@@ -1100,7 +1099,7 @@ logging.level.org.springframework.security.web.FilterChainProxy=DEBUG
 - If we wanted to add a logger after authentication to log who logs in 
 - sprinsecuritysec8/src/main/java/com/eazybytes/filter/AuthoritiesLoggingAfterFilter.java
 
-- after writing filter have to add it to the ```defaultSecurityFilterChain```
+- after writing filter have to add it to the `defaultSecurityFilterChain`
 
 ```
 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
@@ -1120,10 +1119,10 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ![](./images/addFilterAt.png)
 - adds a filter to run around the same time as the other one passed in, however spring will execute these filters in a random order
 - not used a lot as can be unpredictable 
-- here we will log right before or afert the ```BasicAuthenticationFilter``` runs
+- here we will log right before or afert the `BasicAuthenticationFilter` runs
 - sprinsecuritysec8/src/main/java/com/eazybytes/filter/AuthoritiesLoggingAtFilter.java
 
-- after writing filter have to add it to the ```defaultSecurityFilterChain```
+- after writing filter have to add it to the `defaultSecurityFilterChain`
 ```
   // adding custom logging filter at the time of the BasicAuthenticationFilter
   .addFilterAt(new LoggingAtAuthenticationFilter(), BasicAuthenticationFilter.class)
@@ -1142,25 +1141,25 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 
 ### Generic Filter Bean ###
 - abstract class in spring web
-- simple base implementation of ```Filter```
+- simple base implementation of `Filter`
 - superclass for any type of filter
 - can provide access to all the config and init parameters
-- ```getEnvironment()```, ```getFilterConfig()```, ```getServletContext()```, ```init()``` - some of the methods exposed by this class, making all these details available to the subclass
+- `getEnvironment()`, `getFilterConfig()`, `getServletContext()`, `init()` - some of the methods exposed by this class, making all these details available to the subclass
 
 ### OncePerRequestFilter ###
 - regular filters are not limited to running once per request, in theory could run many times per request
-- A custom filter that extends ```OncePerRequestFilter``` is guaranteed to run only 1 time per request
-- extends ```GenericFilterBean```
-- business logic should be inside the ```doFilterInternal()``` method
-- other useful methods - ```shouldNotFilter()```, can decide to not filter certain requests 
+- A custom filter that extends `OncePerRequestFilter` is guaranteed to run only 1 time per request
+- extends `GenericFilterBean`
+- business logic should be inside the `doFilterInternal()` method
+- other useful methods - `shouldNotFilter()`, can decide to not filter certain requests 
 - example: sprinsecuritysec8/src/main/java/com/eazybytes/filter/CsrfCookieFilter.java
-- ```BasicAuthenticationFilter``` extends ```OncePerRequestFilter```
+- `BasicAuthenticationFilter` extends `OncePerRequestFilter`
 - recommended for use over regular filter due to guarantees that it only runs 1 time
 
 
 
 ## 80 Regex Matches For Applying Path Restrictions ##
-- all methods in this image have been replaced by ```requestMatchers()``` in spring v3 / spring security v6
+- all methods in this image have been replaced by `requestMatchers()` in spring v3 / spring security v6
 - examples of [request matchers](https://www.tabnine.com/code/java/methods/org.springframework.security.config.annotation.web.builders.HttpSecurity/requestMatchers)
 
 ![](./images/matchers_methods_spring_v2.png)
@@ -1170,7 +1169,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 # Section 9 Authentication With JWT #
 
 ## 81 JSESSIONID and Issues With It ##
--  ```JSESSIONID``` : tells spring whether user is valid
+-  `JSESSIONID` : tells spring whether user is valid
 - this is a simple token, good for what it does but wont help with communications between services
 - does not hold any user data
 - saved as a cookie in the browser, which is tied to the session
@@ -1235,13 +1234,13 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ```
 
 ### Security Configuration ###
-- must turn off ```JSESSIONID``` generation  by setting ```sessionCreationPolicy``` to ```STATELESS```
+- must turn off `JSESSIONID` generation  by setting `sessionCreationPolicy` to `STATELESS`
 
 ```
 .and().sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 ```
 
-- then have to configure backend to expose an ```Authorization``` header to the frontend 
+- then have to configure backend to expose an `Authorization` header to the frontend 
 - in the cors configuration have to add
 
 ```
@@ -1256,17 +1255,17 @@ corsConfiguration.setExposedHeaders(Arrays.asList("Authorization"));
 
 sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.java
 
-- filter will be added after the ```BasicAuthenticationFilter```, so we can verify the user us valid and then create the token
+- filter will be added after the `BasicAuthenticationFilter`, so we can verify the user us valid and then create the token
 
-```
+`
 .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
-```
+`
 
 ### Validating JWT ###
 - sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenValidatorFilter.java
 - write filter to validate token
 - we want this to run on all authenticated requests except initial login
-- will be executed before the ```BasicAuthenticationFilter```, to validate the incoming JWT before getting to the authentication filter
+- will be executed before the `BasicAuthenticationFilter`, to validate the incoming JWT before getting to the authentication filter
 
 ```
  .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
@@ -1294,18 +1293,18 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ## 89 Validating the JWT is Working ##
 - with changes from this section should now see 
 
-   1. JWT is stored in session storage with the key ```Authorization``` 
-   2. Only the ```XSRF-TOKEN``` is created and stored in cookies, there should be no more ```JSESSIONID``` as we turned that off
+   1. JWT is stored in session storage with the key `Authorization` 
+   2. Only the `XSRF-TOKEN` is created and stored in cookies, there should be no more `JSESSIONID` as we turned that off
 
-   *if you still have a ```JSESSIONID``` there is a good chance it is cached*
+   *if you still have a `JSESSIONID` there is a good chance it is cached*
 
 - now the filter chain holds our new JWT filters
 
 ![](./images/jwt-filter-chain.png)
 
 ## 90 Validating JWT Expiration ##
-- If the  JWT is expired the backend will throw an ```ExpiredJWT``` exception and the user should log back in
-- the logic to check for this should be in our ```JWTTokenValidationFilter```
+- If the  JWT is expired the backend will throw an `ExpiredJWT` exception and the user should log back in
+- the logic to check for this should be in our `JWTTokenValidationFilter`
 # Section 10 Method Level Security #
 
 - compliments RBAC, does not replace 
@@ -1313,7 +1312,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ## 91 Introduction to Method Level Security ##
 ![](./images/method-level-security.png)
 ![](./images/method-level-security-2.png)
-- method security must be enabled with ```@EnableMethodSecurity```, as it is disabled by default
+- method security must be enabled with `@EnableMethodSecurity`, as it is disabled by default
 - allows for fine grained access control
 
 ## 92 Details About Method Invocation Authorization ##
@@ -1323,7 +1322,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/method-level-security-4.png)
 - post authorization is used to validate the data being returned from the method
 
-- ```PermissionElevator.hasPermission()``` allows much more fine grained authentication
+- `PermissionElevator.hasPermission()` allows much more fine grained authentication
 - spring uses spring [AOP](https://www.baeldung.com/spring-aop) at runtime to intercept method calls and ensure users have the correct permissions
 
 ## 93 Method Level Security with PreAuthorize ##
@@ -1340,9 +1339,9 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 - allows for use of spring expression language
 - sprinsecuritysec10/src/main/java/com/eazybytes/controller/LoansController.java
 - runs after the method, spring will prevent the anything from being return if the user does not have the correct permissions
-```
+`
 @PostAuthorize("hasRole('USER')")
-```
+`
 
 ## 95 Filtering with Method Level Security ##
 ![](./images/filter-authorization-1.png)
@@ -1350,7 +1349,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - **this is not related to Spring Security Filter**
 - can filter the method call based on the parameters being passed in
-- ```filterObject```, the method input, should always be of type ```Collection```
+- `filterObject`, the method input, should always be of type `Collection`
 - could say, get this collection but don't return items where the userName = "test"
 
 
@@ -1399,7 +1398,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
    - PKCE - used for SPA
    - Client Credentials - server to server communication
    - Device Code - for IOT such as smart tv
-   - Refresh Token - used to refresh the ```Access Token```
+   - Refresh Token - used to refresh the `Access Token`
    - Implicit Flow (deprecated, will be remove with Oauth2.1)
    - Password Grant (deprecated, will be remove with Oauth2.1)
 
@@ -1411,12 +1410,12 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ## 100 OAuth2 Terminology ##
 ![](./images/oauth2-terminology.png)
 - Resource Owner : the user who owns the resources being accessed
-- Client : the third party app/service trying to interact with the ```Resource Server``` on behalf of the ```Client```
-- Authorization Server : responsible for authenticating the ```Resource Owner``` 
-   -  ```Resource Owner``` has an account on this server
-   - also responsible for generating access tokens and redirecting back the the ```Client``` after authentication is complete
-- Resource Server : server where the resources the ```Client``` wants to consume are located 
-   - depending on the size of the project the ```Authorization Server``` and ```Resource Server``` could be the same machine 
+- Client : the third party app/service trying to interact with the `Resource Server` on behalf of the `Client`
+- Authorization Server : responsible for authenticating the `Resource Owner` 
+   -  `Resource Owner` has an account on this server
+   - also responsible for generating access tokens and redirecting back the the `Client` after authentication is complete
+- Resource Server : server where the resources the `Client` wants to consume are located 
+   - depending on the size of the project the `Authorization Server` and `Resource Server` could be the same machine 
 - Scopes : granular permissions, very similar to roles/authorities
 
 
@@ -1426,52 +1425,52 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 - fictional scenario for example
 
 ### Configuring OAuth2 ###
-1.  Must register app as a ```Client``` with the ```Authorization Server```
-  - when you register as a ```Client``` you get a ```Client ID``` and ```Client Secret```
+1.  Must register app as a `Client` with the `Authorization Server`
+  - when you register as a `Client` you get a `Client ID` and `Client Secret`
 
-2. on login ```Client``` must redirect to the ```Authorization Server```, user credentials are never shared with the ```Client```
-3.  Then ```Resource Owner``` asked if they consent to sharing resources with ```Client```
-4. If the ```Resource Owner``` agrees then an ```ACCESS TOKEN``` and ```REFRESH TOKEN``` are shared with the ```Client``` from the ```Authorization Server```
-   - ```Authorization Server``` decides how long the tokens are good for
-5. ```Client``` sends an api requests with ```ACCESS TOKEN``` to the ```Resource Server```. The ```Resource Server``` verifies the token is valid
-   - the ```ACCESS TOKEN``` is scoped to only the permissions needed by the ```Client```.
-   - the ```Client``` cannot update account credentials etc...
-6. ```Resource Server``` sends requested resources to ```Client``` 
-7.  most times you will be redirected back to the ```Client``` after providing consent
+2. on login `Client` must redirect to the `Authorization Server`, user credentials are never shared with the `Client`
+3.  Then `Resource Owner` asked if they consent to sharing resources with `Client`
+4. If the `Resource Owner` agrees then an `Access Token` and `REFRESH TOKEN` are shared with the `Client` from the `Authorization Server`
+   - `Authorization Server` decides how long the tokens are good for
+5. `Client` sends an api requests with `Access Token` to the `Resource Server`. The `Resource Server` verifies the token is valid
+   - the `Access Token` is scoped to only the permissions needed by the `Client`.
+   - the `Client` cannot update account credentials etc...
+6. `Resource Server` sends requested resources to `Client` 
+7.  most times you will be redirected back to the `Client` after providing consent
 
 ### 102 Demo of Sample Flow ###
 - sign up for any account with google, facebook, github etc...
 - example using slack 
-   - ```Resource Owner``` : you 
-   - ```Client``` : slack
-   - ```Authorization Server``` : run by google
-   - ```Resource Server```: run by google
-   - ```ACCESS TOKEN``` : provided by ```Authorization Server```
+   - `Resource Owner` : you 
+   - `Client` : slack
+   - `Authorization Server` : run by google
+   - `Resource Server`: run by google
+   - `Access Token` : provided by `Authorization Server`
 
--  most real customers may have their own ```Authorization Server```
+-  most real customers may have their own `Authorization Server`
 
 ## 103 Deep Dive and Demo Authorization Code Grant Type Flow in OAuth2 ##
 - have to choose grant type based on use case
-- use when we have a ```Resource Owner```, a ```Client``` and a ```Resource Server```, where the ```Client``` wants to communicate with the ```Resource Server``` behalf of the ```Resource Owner```
-- more secure and has superseded ```Implicit Grant```, 
+- use when we have a `Resource Owner`, a `Client` and a `Resource Server`, where the `Client` wants to communicate with the `Resource Server` behalf of the `Resource Owner`
+- more secure and has superseded `Implicit Grant`, 
 
 ![](./images/ouath-flow-authorization-grant.png)
 
 ![](./images/oauth2-authorization-grant-step2-3-5.png)
 
-5. ```ClientID``` and ```ClientSecret```  shared from client to ```Authorization Server```
+5. `ClientID` and `ClientSecret`  shared from client to `Authorization Server`
 
 ![](./images/oauth2-authorization-code-3.png)
 
 
-1. ```Resource Owner``` requests login
-2. ```Client``` redirects  ```Resource Owner``` to the ```Auth Server```, also appends important information such as ```ClientID``` to tell ```Auth Server``` what ```Client``` to give access to,  ```SCOPE``` for type of access, and ```REDIRECT URI``` to get back to original ```Client```
-3. ```Resource Owner``` logs into ```Auth Server```
-4. ```Auth Server``` provides ```Client``` with ```Authorization Code```
-5. ```Client``` provides ```Auth Server``` with ```Authorization Code```, ```ClientID```, ```ClientSecret```, ```Grant Type``` and ```Redirect URI```
-6. if all checks out ```Auth Server``` provides ```Client``` with ```Access Token```
-7. ```Client``` requests resources on from ```Resource Server``` on behalf of the ```Resource Owner``` and sends the ```Access Token``` to authenticate
-8. Resources returned to the ```Client``` from the ```Resource Server```
+1. `Resource Owner` requests login
+2. `Client` redirects  `Resource Owner` to the `Auth Server`, also appends important information such as `ClientID` to tell `Auth Server` what `Client` to give access to,  `SCOPE` for type of access, and `REDIRECT URI` to get back to original `Client`
+3. `Resource Owner` logs into `Auth Server`
+4. `Auth Server` provides `Client` with `Authorization Code`
+5. `Client` provides `Auth Server` with `Authorization Code`, `ClientID`, `ClientSecret`, `Grant Type` and `Redirect URI`
+6. if all checks out `Auth Server` provides `Client` with `Access Token`
+7. `Client` requests resources on from `Resource Server` on behalf of the `Resource Owner` and sends the `Access Token` to authenticate
+8. Resources returned to the `Client` from the `Resource Server`
 
 
 ### Demo ###
@@ -1485,8 +1484,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/ouath2-implicit-grant-flow-1.png)
 ![](./images/ouath2-implicit-grant-flow-2.png)
 
-- less secure because there is no way to send the ```ClientSecret``` in get requests outside of the Url. This would exposing the client credentials it to the world
-- ```Access Token``` would also come in the URL as well, exposed it
+- less secure because there is no way to send the `ClientSecret` in get requests outside of the Url. This would exposing the client credentials it to the world
+- `Access Token` would also come in the URL as well, exposed it
 - No way to reliably prevent a malicious user from inject in a different token
 
 ### Demo ###
@@ -1496,11 +1495,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/oauth2-password-grant-1.png)
 ![](./images/oauth2-password-grant-2.png)
 
-- also know as ```Resource Owner Credentials Grant```
+- also know as `Resource Owner Credentials Grant`
 - no recommended for production
-- in this case ```Resource Owner``` credentials are given directly to the ```Client```
-- the ```Client``` then posts the ```Resource Owner``` credentials, ```ClientID``` and ```ClientSecret``` to the ```Authorization Server```
-- ```Authorization Server``` sends back an ```Access Token``` to the ```Client``` which the ```Client``` can then use to access the ```Resource Server``` on behalf of the ```Resource Owner```
+- in this case `Resource Owner` credentials are given directly to the `Client`
+- the `Client` then posts the `Resource Owner` credentials, `ClientID` and `ClientSecret` to the `Authorization Server`
+- `Authorization Server` sends back an `Access Token` to the `Client` which the `Client` can then use to access the `Resource Server` on behalf of the `Resource Owner`
 
 - could be used if all the parties are part of the same organization, LAN
 - being removed in Oauth2.0+
@@ -1515,42 +1514,42 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/oauth2-client-credentials-2.png)
 
 - this is for server to server communication only
-- only have a ```Client```, ```Auth Server``` and ```Resource Server```, no user 
+- only have a `Client`, `Auth Server` and `Resource Server`, no user 
 - grant_type will be 'client_credentials'
 
 
-1. ``` Client``` sends request to ```Auth Server```, it states there is no end user and provides ```ClientID``` and ```Client Secret```
-2. ```Auth Server```, provides ```Access Token``` to ```Client```
-3. ```Client``` sends request to ```Resource Server``` with the ```Access Token```
-4. If all is good, the ```Resource Server``` sends back resources to the ```Client``` 
+1. ` Client` sends request to `Auth Server`, it states there is no end user and provides `ClientID` and `Client Secret`
+2. `Auth Server`, provides `Access Token` to `Client`
+3. `Client` sends request to `Resource Server` with the `Access Token`
+4. If all is good, the `Resource Server` sends back resources to the `Client` 
 
 ## 108 Deep Dive of Refresh Token Grant Type Flow in OAuth2 ##
 ![](./images/oauth2-refresh-token-1.png)
 ![](./images/oauth2-refresh-token-2.png)
 
 
-- inside the response after a successfully authenticating, there is usually a ```Refresh Token```
-- The ```Refresh Token``` will used to refresh the ```Access Token``` after x amount of time
-- ```Client``` uses the ```Refresh Token``` to request a new ```Access Token``` from the ```Auth Server``` if the ```Refresh Token``` is valid then a new ```Access Token``` is provided
+- inside the response after a successfully authenticating, there is usually a `Refresh Token`
+- The `Refresh Token` will used to refresh the `Access Token` after x amount of time
+- `Client` uses the `Refresh Token` to request a new `Access Token` from the `Auth Server` if the `Refresh Token` is valid then a new `Access Token` is provided
   - does not require end user to login again
-- it is the job of the ```Client``` application to implement this refresh token configuration
+- it is the job of the `Client` application to implement this refresh token configuration
 
 ## 109 How Resource Server Validates Tokens Issue by the Auth Server ##
 
 ### Approach 1 Communication ###
 ![](./images/resource-server-token-validation-1.png)
 
-- ```Resource Server``` must reach out to ```Authorization Server``` with the provided ```Access Token``` to validate that token on ```Client``` requests
+- `Resource Server` must reach out to `Authorization Server` with the provided `Access Token` to validate that token on `Client` requests
 
 ### Approach 2 Common Database ###
 ![](./images/resource-server-token-validation-2.png)
 
-- store all valid tokens in a common database and check if the ```Access Token``` is present 
+- store all valid tokens in a common database and check if the `Access Token` is present 
 
 ### Approach 3 Certificates ###
 ![](./images/resource-server-token-validation-3.png)
 
-- ``` Resource Server``` has the public key of ```Access Server```, it can use the public key to validate any ```Access Tokens```
+- ` Resource Server` has the public key of `Access Server`, it can use the public key to validate any `Access Tokens`
 - most common and recommended approach
 
 
@@ -1564,11 +1563,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - OIDC (Open ID Connect) sits on top of OAuth2 for authentication, and brings standards for sharing identity details
 - there is no way with OAuth2 to know details about the client, ie: username, email etc...
-- The ```Authorization Server``` is smart enough to know that if ```openid``` exists in the ```SCOPE```, then it returns both an ```Access Token``` and ```ID Token```
+- The `Authorization Server` is smart enough to know that if `openid` exists in the `SCOPE`, then it returns both an `Access Token` and `ID Token`
 
 ![](./images/openID-connect-2.png)
 
-- With ```Access Token``` and ```ID Token``` we now have IAM, a more advanced concept implemented by Keycloak and other OAuth2 providers
+- With `Access Token` and `ID Token` we now have IAM, a more advanced concept implemented by Keycloak and other OAuth2 providers
 ### Demo ###
 [oauth playground](https://www.oauth.com/playground/)
 
@@ -1577,15 +1576,15 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 - using a separate app for this section only - ./12_section/springsecOAUTH2GitHub
 
 ## 111 Registering Client Details With Github ##
-- will use Github as OAuth2 ```Auth Server```
+- will use Github as OAuth2 `Auth Server`
 
-- the spring boot app will be the ```Client``` in this scenario
+- the spring boot app will be the `Client` in this scenario
 
 - sign into github -> settings -> developer settings -> OAuth Apps -> Register New Application
 
 ![](./images/oauth-guthub-registration.png)
 
-- github supplies us with a ```ClientID``` and we have to generate the ```ClientSecret```
+- github supplies us with a `ClientID` and we have to generate the `ClientSecret`
 - could add logo if you want
 
 
@@ -1601,7 +1600,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
 ```
-- passing ```ClientID``` and ```ClientSecret``` through env vars in the application properties
+- passing `ClientID` and `ClientSecret` through env vars in the application properties
 
 ### Environment Varaibles ###
 - have to add to either bash profile 
@@ -1640,35 +1639,195 @@ export github_client_secret=mysecret
 ## 116 Installing Keycloak and Setting Up Admin Account ##
 - download the ZIP and extract it 
 - openkJDK getting [started docs](https://www.keycloak.org/getting-started/getting-started-zip)
+- cd to dircttion and run `bin/kc.sh start-dev --http-port 8180`, runs keycloak in dev mode at prot 8180
+- create and admin user then go to the admin console
+- this version will use an h2 in memory db
+- if you use the keycloak in this repo, usernam `admin`, passsword `admin`
 
 ## 117 Creating KeyCloak Realms ##
+- Realm: space in auth server, should have different realms for dev, staging, prod etc..
+- create a new realm called `eazybankdev`
+
+
 
 ## 118 Creating Client Credentials ##
-
+- can create a client through the UI, in a real world situation, would have to reach out to the maintainer of the keycloak server and go through some sort of review before being added as a  `Client`
+- clients tab -> new client -> 
+  - type: OpenID Connect
+  - clientID: eazybankapi
+  - turn on client authentication 
+  - right now we are only test server to server communication so uncheck Standard Flow and Direct Access Grants, and check Service Account Roles (this will enable client credentials grant type)
+  - cliendID: `eazybankapi`, clientSecret: can be found under the credentials tab of the client
 ## 119 Setting Up EazyBank Resource Server ##
 
+- if you used the same realm name can use this endpoing to see importnat uri's 
+- http://localhost:8180/realms/eazybankdev/.well-known/openid-configuration
+
+- have to convert our backend system into a resource server
+
+1. have to add the maven dependency for OAuth2 resource server
+
+`
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+`
+
+2. then have to configure http to use 
+- sprinsecuritysec13/src/main/java/com/eazybytes/config/ProjectSecurityConfig.java
+
+`
+// telling spring this will now act as an OAuth resource server
+// it will receive access tokens in the form of JWT's and use the jwtAuthenticationConverter class to get the granted authorities
+.and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter);
+`
+
+3.  then have to add to application.proprties, where the url is your realm uri
+
+4. Have to implement a class/method to convert the roles (which are strings) in the JWT to GrantedAuthorities so spring knows how to handle them 
+
+  - sprinsecuritysec13/src/main/java/com/eazybytes/config/KeycloakRoleConverter.java
+
+```
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8180/realms/eazybankdev/protocol/openid-connect/certs
+```
+
 ## 120 Getting Access Token From Keycloak with Client Credentials Grant Type ##
+- have to get the `Access Token` from the `Authentication Server`, under the client 
+
+![](./images/keycloak-postman-post.png)
+- sent a post request with required headers to Keycloak, this returned us back an `Access Token`, in the form of a JWT, upon successful `Client` Authentication
+- must incluce the scope of `openid` at the minimum  
+- this is an example post our server may make to an  `Authentication Server`
+
+- under the Realm Roles Tab, create a role with the name `USER` and `ADMIN`
+- have to assign these roles to the client now. 
+  - go to clients and eazybankapi
+  - DONT DO THIS UNDER THE ROLES TAB, THE ROLES TAB IS USED FOR END USERS
+  - eazybankapi is a service account so click the 'service accounts roles' tab and add the roles required
+  - now will have the roles in your JWT
+  - can decode at https://jwt.io
+
 
 ## 121 Passing Access Token to Resource Server Through Postman ##
+- can take the JWT from the previous step and pass it to the `Resource Server`, eazbank backend in this case and we should be authorized by this line in the security configuraiton
+
+```
+.and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter);
+```
+- here the `jwtAuthenticationConverter`, which we set as our won custom implementation of `KeycloakRoleConverter` converts the strings in the 'realm-access' key to granted authorities which can then be read by spring to authorize the user
+
+example: 
+![](./images/clietn-credential-successful-get.png)
+
+# Authorization Code Grant Type #
+
+- not for javascript single page applications
+
 ## 122 Authrorization Code Grant Type with EazyBank ##
+![](./images/eazybank-auth-code-grant-flow.png)
+
 
 ## 123 Creating Client and User Details in KeyCloak ##
+- have to create a new client in keycloak, 
+  - 'easzybankclient'
+  - 'client authenticaiton' on
+  - 'standard flow' checked
+  - uncheck 'Direct Access Grants'
+
+- after creating the client you must also add the valid redirect uri under client settings. 
+- dont have one for this section 
+- have to create a user under the `Users` tab in the keycloak console
+
 
 ## 124 Testing Authorization Code Grant Type with Postman ##
-
+- `Resource Owner` is redirected by the `Client` to the keycloak authroization endpoint
+- in this case that is `http://localhost:8180/realms/eazybankdev/protocol/openid-connect/auth`
+- tests `Authorization Code ` grant type with keycloak, watch video for visual demo
 ## 125 126 Authorization Code with PKCE ##
+- we have an angular app and a spring boot app, we need to implement the Authorization Code flavor PKCE.
+- this is becuase with regular Authorization Code there is no good way to hide the client secret value in the code by looking at the source code in the browser
+
+![](./images/oauth2-pkce.png)
+- removes the need for use of client secret, for SPA's that are browser based and public facing we should now use the `code_verifier` and `code_challenge` to authenticate the `Client`
+![](./images/outh2-pkce2.png)
+![](./images/oauth2-pkce3.png)
+
+- designed to protect the authorization work flow
+- recomended approach
+- going to be combined with Authorization Code in Oauth2.1
+
+1. `Resource Owner` requsts access to resource onc `Client`
+2. `Client` tells `Resource Owner` to talk to `Auth Server`
+3. `Resource Owner` is redirected to `Auth Server`, where they login in with their credentials, and pass along the    
+ 
+   - `client_id` 
+   - `redirect_uri`
+   - `scope` - always have to cinlude openid
+   - `state` - protect against csrf
+   - `response_type` - shoudl be code
+   - `code_challenge_method` - what algrorithm was used
+   - `code_challenge`, which was generated by the `Client`
+4. `Auth Server` provides `Client` with and one time `Authz Code`
+5. `Client` responds to the `Auth Server` and provides the `client_id`, `Authz Code `, and `code_verifier` which the `Auth Server` can then use to calculate the `code_challenge` and validate the request
+6. ` Auth Server` provides the `Client` with an `Access Token`
+7. `Client` requests resources from the `Resource Server` and sends along the `Access Token`
+8. `Resource Server` provides `Client` the resources
+
+### Demo ###
+[oauth playground](https://www.oauth.com/playground/)
 
 ## 127 Creating Public Facing Client Details in Keycloak Server ##
+- create a new `Client`
+- `client authentication` should be off becuase we do not want to be fore to share the client secret with the `Auth Server`
+- only keep `Standard Flow` checked
+- must add the valid redirect uri to the client settings, `http://localhost:4200/dashboard`
+- can also add a logout route if you want, `http://localhost:4200/home` in this case
+- add a web origin of `http://localhost:4200` or you will be blocked by cors
+- under the client advanced menu set `Proof Key for Code Exchange Code Challenge Method` for `s256`
 
 ## 128 Implementing PKCE Authorization Code Grant Type in Angular UI Part ##
 
+- have to implement this inside the angular application
 ### Part 1 ###
+1. have to install keycloak angular npm package, already included in the package.json
+   - [keycloak angualr npm page](https://www.npmjs.com/package/keycloak-angular)
+2. inside the angular.json, have to allow som dependencies
+```
+"allowedCommonJsDependencies": [
+              "base64-js",
+              "js-sha256"
+           ],
+```
 
-### 129 Part 2 ###
+- alot of changed, can find the working application in ./angular-ui/ui-section-13
+- in short needed to complete steps above, set up keycloak auth guard in the app module and protect the routes in the app routing module, via the new auth.routeguard
+- also had to create login and logout methods
 
-## 130 Testing PKCE ##
+### Summary ###
+- In this PKCE configuration we have configured our frontend to authenticate with an `Auth Server`, get the response and when sedning an api request to the backend we attatch the JWT as an `Authorization` header. Then in the backend we get the JWT and strip the roles off, turn them into `Granted Authorities`, and store them in the security context of the logged in user
 
 ## 131 Important KeyCloak Features ##
 
+- comes with alot of features our fo the box
+- can provide your own custom login page under realm settings -> themes
+- provides an admin rest api for completing all admin tasks 
+- can provide deafult client scopes, so they are alawys returned to the user, could also set to optional or none
+- can create own client scopes
+- offer groups
+- can see/manage all active sessions
+- can log events
+- can define password policies under the Authentication tab
+- Can leverage identity providers for social login
+- Supports integration with Kerberos and Ldap
 
 ## 132 Social Login Integration with Keycloak Server ##
+- social login with github
+- Identity providers tab -> github -> provide client id and client secret
+- have to add the uri provided by keycloak as the callback uri in github 
+- also ensure your homepage url in github us accurate
+
+- social login does not automaticaly assign roles by default  
+![](./images/keycloak-github.png)
+
