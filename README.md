@@ -1341,7 +1341,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 
 ## 81 JSESSIONID and Issues With It ##
 -  `JSESSIONID` : tells spring whether user is valid
-- this is a simple token, good for what it does but wont help with communications between services
+- this is a simple token, good for what it does but wont help with communication between services
 - does not hold any user data
 - saved as a cookie in the browser, which is tied to the session
 - invalidated if the server is restarted
@@ -1364,7 +1364,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 ![](./images/jwt-2.png)
 
 - uses base64 encoding
-- header - store metadata in the token, ie: algorithm, type etc
+- header - stores metadata in the token, ie: algorithm, type etc
 - body - can store any data about the user/issuer here
 - signature - can be used to validate the token
 - should be validated on each request as to avoid tampering
@@ -1373,7 +1373,7 @@ User 0@1.com is successfully authenticated and has the authorities [VIEWLOANS, V
 
 ### Validating JWTs ###
 ![](./images/jwt-signature.png)
-- if all communication is within your LAN/Firewall you don't have to worry about JWT tampering as much
+- if all communication is within your LAN/Firewall validation still recomended but not required as someone would have to breach the network to modify the JWT
 - if you are communicating outside your network you must validate the signature of your JWT to ensure no one has tampered with it
 ![](./images/JWT-validation-2.png)
 - backend will regenerate the signature hash using it's secret and compare it to the received JWT to see if the JWT has been tampered with in transit 
@@ -1493,8 +1493,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/method-level-security-4.png)
 - post authorization is used to validate the data being returned from the method
 
-- `PermissionElevator.hasPermission()` allows much more fine grained authentication
-- spring uses spring [AOP](https://www.baeldung.com/spring-aop) at runtime to intercept method calls and ensure users have the correct permissions
+- `PermissionElevator.hasPermission()` allows much more fine grained authorization
+-  uses spring [AOP](https://www.baeldung.com/spring-aop) at runtime to intercept method calls and ensure users have the correct permissions
 
 ## 93 Method Level Security with PreAuthorize ##
 - allows for use of spring expression language
@@ -1566,8 +1566,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 - there is no OAuth2 code 
 - different grant types are for different use cases
    - Authorization Code - user accounts
-   - PKCE - used for SPA
-   - Client Credentials - server to server communication
+   - PKCE - similar to Authorization code but has a different way for teh client (A Browser based SPA in most cases) to login to the `Auth Server`, this is becuase in a browser based application it is very difficult to protect the `Client Secret`.
+   - Client Credentials - server to server communication, when there is no user involved
    - Device Code - for IOT such as smart tv
    - Refresh Token - used to refresh the `Access Token`
    - Implicit Flow (deprecated, will be remove with Oauth2.1)
@@ -1597,11 +1597,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 ### Configuring OAuth2 ###
 1.  Must register app as a `Client` with the `Authorization Server`
-  - when you register as a `Client` you get a `Client ID` and `Client Secret`
+   - when you register as a `Client` you get a `Client ID` and `Client Secret`
 
 2. on login `Client` must redirect to the `Authorization Server`, user credentials are never shared with the `Client`
 3.  Then `Resource Owner` asked if they consent to sharing resources with `Client`
-4. If the `Resource Owner` agrees then an `Access Token` and `REFRESH TOKEN` are shared with the `Client` from the `Authorization Server`
+4. If the `Resource Owner` agrees then an `Access Token` and `Refresh Token` are shared with the `Client` from the `Authorization Server`
    - `Authorization Server` decides how long the tokens are good for
 5. `Client` sends an api requests with `Access Token` to the `Resource Server`. The `Resource Server` verifies the token is valid
    - the `Access Token` is scoped to only the permissions needed by the `Client`.
@@ -1635,11 +1635,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 
 1. `Resource Owner` requests login
-2. `Client` redirects  `Resource Owner` to the `Auth Server`, also appends important information such as `ClientID` to tell `Auth Server` what `Client` to give access to,  `SCOPE` for type of access, and `REDIRECT URI` to get back to original `Client`
+2. `Client` redirects  `Resource Owner` to the `Auth Server`, also appends important information such as `ClientID` to tell `Auth Server` what `Client` to give access to,  `Scope` for type of access, and `Redirect Uri` to get back to original `Client`
 3. `Resource Owner` logs into `Auth Server`
 4. `Auth Server` provides `Client` with `Authorization Code`
 5. `Client` provides `Auth Server` with `Authorization Code`, `ClientID`, `ClientSecret`, `Grant Type` and `Redirect URI`
-6. if all checks out `Auth Server` provides `Client` with `Access Token`
+6. if all checks out `Auth Server` provides `Client` with `Access Token`, in the form of a `JWT`
 7. `Client` requests resources on from `Resource Server` on behalf of the `Resource Owner` and sends the `Access Token` to authenticate
 8. Resources returned to the `Client` from the `Resource Server`
 
@@ -1656,8 +1656,8 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 ![](./images/ouath2-implicit-grant-flow-2.png)
 
 - less secure because there is no way to send the `ClientSecret` in get requests outside of the Url. This would exposing the client credentials it to the world
-- `Access Token` would also come in the URL as well, exposed it
-- No way to reliably prevent a malicious user from inject in a different token
+- The url also contained the `Access Token` , exposing it via query params
+- No way to reliably prevent a malicious user from stealing the `Acces Token`
 
 ### Demo ###
 [oauth playground](https://www.oauth.com/playground/)
@@ -1701,7 +1701,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - inside the response after a successfully authenticating, there is usually a `Refresh Token`
 - The `Refresh Token` will used to refresh the `Access Token` after x amount of time
-- `Client` uses the `Refresh Token` to request a new `Access Token` from the `Auth Server` if the `Refresh Token` is valid then a new `Access Token` is provided
+- `Client` uses the `Refresh Token` to request a new `Access Token` from the `Auth Server`, if the `Refresh Token` is valid then a new `Access Token` is provided
   - does not require end user to login again
 - it is the job of the `Client` application to implement this refresh token configuration
 
@@ -1734,7 +1734,7 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - OIDC (Open ID Connect) sits on top of OAuth2 for authentication, and brings standards for sharing identity details
 - there is no way with OAuth2 to know details about the client, ie: username, email etc...
-- The `Authorization Server` is smart enough to know that if `openid` exists in the `SCOPE`, then it returns both an `Access Token` and `ID Token`
+- The `Authorization Server` is smart enough to know that if `openid` exists in the `Scope`, then it returns both an `Access Token` and `ID Token`
 
 ![](./images/openID-connect-2.png)
 
@@ -1751,11 +1751,11 @@ sprinsecuritysec9/src/main/java/com/eazybytes/filter/JWTTokenGeneratorFilter.jav
 
 - the spring boot app will be the `Client` in this scenario
 
-- sign into github -> settings -> developer settings -> OAuth Apps -> Register New Application
+- sign into Github -> settings -> developer settings -> OAuth Apps -> Register New Application
 
 ![](./images/oauth-guthub-registration.png)
 
-- github supplies us with a `ClientID` and we have to generate the `ClientSecret`
+- Github supplies us with a `ClientID` and we have to generate the `ClientSecret`
 - could add logo if you want
 
 
@@ -1788,7 +1788,8 @@ export github_client_secret=mysecret
 
 ## 113 Running Spring App with Github OAuth2 ##
 
-- if configured correctly you should be redirected to github login page, be able to login, grant your app access to your github account and be redirected
+- If configured correcttly you should be redirected to the github login page and see you are logging in at teh request of the `Client` , you provide you credentails and then verify you want to give the `Client` access to your informtaion. Github will then redirect you back to the `Client` and provide and access key. 
+if configured correctly you should be redirected to github login page, be able to login, grant your app access to your github account and be redirected
 - good for small apps but, limits your control and does not allow for creation of roles/scopes/users etc...
 
 # Section 13 Implementing OAuth2 with Keycloak #
@@ -1796,13 +1797,13 @@ export github_client_secret=mysecret
 ## 114 OAuth2 in EazyBank App ##
 
 ![](./images/eazybank-ouath2-config.png)
-- will be using the Authorization Code grant type
+- will be demoing client credentials, authorization code and pkce grant types
 
 
 ## 115 Introduction to Keycloak Auth Server ##
 - https://www.keycloak.org/
 - an authorization server 
-- other are okta and amazon congnito to name a few
+- other commmon ones are okta and amazon congnito
 - open source
 - very stable and continually updated
 - maintained by RedHat
@@ -1810,7 +1811,7 @@ export github_client_secret=mysecret
 ## 116 Installing Keycloak and Setting Up Admin Account ##
 - download the ZIP and extract it 
 - openkJDK getting [started docs](https://www.keycloak.org/getting-started/getting-started-zip)
-- cd to dircttion and run `bin/kc.sh start-dev --http-port 8180`, runs keycloak in dev mode at prot 8180
+- cd to dircttion and run `bin/kc.sh start-dev --http-port 8180`, runs keycloak in dev mode at port 8180
 - create and admin user then go to the admin console
 - this version will use an h2 in memory db
 - if you use the keycloak in this repo, usernam `admin`, passsword `admin`
@@ -1827,7 +1828,7 @@ export github_client_secret=mysecret
   - type: OpenID Connect
   - clientID: eazybankapi
   - turn on client authentication 
-  - right now we are only test server to server communication so uncheck Standard Flow and Direct Access Grants, and check Service Account Roles (this will enable client credentials grant type)
+  - right now we are only testing server to server communication, there is no `Resource Owner` involved, so uncheck Standard Flow and Direct Access Grants, and check Service Account Roles (this will enable client credentials grant type)
   - cliendID: `eazybankapi`, clientSecret: can be found under the credentials tab of the client
 ## 119 Setting Up EazyBank Resource Server ##
 
@@ -1915,7 +1916,8 @@ example:
 ## 124 Testing Authorization Code Grant Type with Postman ##
 - `Resource Owner` is redirected by the `Client` to the keycloak authroization endpoint
 - in this case that is `http://localhost:8180/realms/eazybankdev/protocol/openid-connect/auth`
-- tests `Authorization Code ` grant type with keycloak, watch video for visual demo
+- in this case only test with postman, as app is configured for pkce 
+- EXPAND HERE 
 ## 125 126 Authorization Code with PKCE ##
 - we have an angular app and a spring boot app, we need to implement the Authorization Code flavor PKCE.
 - this is becuase with regular Authorization Code there is no good way to hide the client secret value in the code by looking at the source code in the browser
@@ -1972,33 +1974,33 @@ example:
            ],
 ```
 
-- alot of changed, can find the working application in ./angular-ui/ui-section-13
+- alot of change dont ie ui in terms of path arguments, configuration, can find the working application in ./angular-ui/ui-section-13
 - in short needed to complete steps above, set up keycloak auth guard in the app module and protect the routes in the app routing module, via the new auth.routeguard
-- also had to create login and logout methods
+- also had to create login and logout methods and wire them to the buttons in the UI
 
 ### Summary ###
 - In this PKCE configuration we have configured our frontend to authenticate with an `Auth Server`, get the response and when sedning an api request to the backend we attatch the JWT as an `Authorization` header. Then in the backend we get the JWT and strip the roles off, turn them into `Granted Authorities`, and store them in the security context of the logged in user
 
 ## 131 Important KeyCloak Features ##
 
-- comes with alot of features our fo the box
-- can provide your own custom login page under realm settings -> themes
-- provides an admin rest api for completing all admin tasks 
-- can provide deafult client scopes, so they are alawys returned to the user, could also set to optional or none
-- can create own client scopes
-- offer groups
-- can see/manage all active sessions
-- can log events
-- can define password policies under the Authentication tab
+- Comes with alot of features out of the box
+- Can provide your own custom login page under realm settings -> themes
+- Provides an admin rest api for completing all admin tasks 
+- Can provide deafult client scopes, so they are alawys returned to the user, could also set to optional or none
+- Can create own client scopes
+- Offers groups/roles
+- Can see/manage all active sessions
+- Can log events
+- Can define password policies under the Authentication tab
 - Can leverage identity providers for social login
 - Supports integration with Kerberos and Ldap
 
 ## 132 Social Login Integration with Keycloak Server ##
-- social login with github
+- Cocial login with github
 - Identity providers tab -> github -> provide client id and client secret
 - have to add the uri provided by keycloak as the callback uri in github 
-- also ensure your homepage url in github us accurate
+- Also ensure your homepage url in github us accurate
 
-- social login does not automaticaly assign roles by default  
+- Social login does not automaticaly assign roles by default  
 ![](./images/keycloak-github.png)
 
