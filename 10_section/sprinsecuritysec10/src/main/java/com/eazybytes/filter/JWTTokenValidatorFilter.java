@@ -51,6 +51,7 @@ import java.nio.charset.StandardCharsets;
                     // Set validated user into spring security context
                     Authentication auth = new UsernamePasswordAuthenticationToken(username, null,
                             AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
+                    //setting user info in security context
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 } catch (Exception e) {
                     throw new BadCredentialsException("Invalid Token received!");

@@ -1916,8 +1916,10 @@ example:
 ## 124 Testing Authorization Code Grant Type with Postman ##
 - `Resource Owner` is redirected by the `Client` to the keycloak authroization endpoint
 - in this case that is `http://localhost:8180/realms/eazybankdev/protocol/openid-connect/auth`
-- in this case only test with postman, as app is configured for pkce 
-- EXPAND HERE 
+- in this case only test with postman, as frontend app is configured for pkce 
+- There is a potman collection json file in the root, import this into postman, can use this to mock this work flow, inside the authorization code folder, read the directions descriptions
+
+*also includes postman request for client credentials, jwt and creating basic users*
 ## 125 126 Authorization Code with PKCE ##
 - we have an angular app and a spring boot app, we need to implement the Authorization Code flavor PKCE.
 - this is becuase with regular Authorization Code there is no good way to hide the client secret value in the code by looking at the source code in the browser

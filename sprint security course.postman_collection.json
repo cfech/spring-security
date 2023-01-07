@@ -1,0 +1,353 @@
+{
+	"info": {
+		"_postman_id": "bfeb1926-17ff-4e17-8cf3-66f4895c0ef0",
+		"name": "sprint security course",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Section 13 - Authorization Code",
+			"item": [
+				{
+					"name": "01-Authorization-Code-mock resource owner login and get authz code - Step 3, after client redirect, response is step 4",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8180/realms/eazybankdev/protocol/openid-connect/auth?client_id=eazybankclient&response_type=code&scope=openid&redirect_uri=http://localhost:7080/sample&state=uysgfbsijufb&",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8180",
+							"path": [
+								"realms",
+								"eazybankdev",
+								"protocol",
+								"openid-connect",
+								"auth"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "eazybankclient",
+									"description": "directions: copy the url from the bar above, paste it into the browser with the keycloak server running and configured, log in with resource owner and copy the 'code' query param from the redirected url, poceed to 02"
+								},
+								{
+									"key": "response_type",
+									"value": "code"
+								},
+								{
+									"key": "scope",
+									"value": "openid"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "http://localhost:7080/sample",
+									"description": "dummy value, must be the same as in keycloak"
+								},
+								{
+									"key": "state",
+									"value": "uysgfbsijufb",
+									"description": "csrf token, dumy value, used for anti tampering "
+								},
+								{
+									"key": "",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02- Authorization-Code-Access Token request with authz code from previous step, step 5, response is step 6",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "eazybankclient",
+									"type": "default"
+								},
+								{
+									"key": "client_secret",
+									"value": "DAb9fFlNN7c2nTbIHXNfyy0i6E0XQcKH",
+									"type": "default"
+								},
+								{
+									"key": "grant_type",
+									"value": "authorization_code",
+									"type": "default"
+								},
+								{
+									"key": "code",
+									"value": "4cafebeb-ccb7-4a66-9177-e0596fb3c8bc.e37c2d0a-c742-45c0-94d9-436d8e332784.9bfbe974-98d6-4697-b4ad-7bd5b23fd1bb",
+									"description": "code from previous step and send the post\n",
+									"type": "default"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "http://localhost:7080/sample",
+									"type": "default"
+								},
+								{
+									"key": "scope",
+									"value": "openid",
+									"type": "default"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8180/realms/eazybankdev/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8180",
+							"path": [
+								"realms",
+								"eazybankdev",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03-Authorization-Code-Resource-Request using access token, step 7 response step 8",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJGcXkyeDNCNl84b1c0WU92Z3VORVVodzlXcVhCYWk2QWNlRTVtTVhDSk5VIn0.eyJleHAiOjE2NzMxMjg5NTYsImlhdCI6MTY3MzEyODY1NiwiYXV0aF90aW1lIjoxNjczMTI4NjA2LCJqdGkiOiJmN2NjNGNmNC0zOWUyLTQ1NjAtYThhYS03ZjE2Nzk3NGI1MmEiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgxODAvcmVhbG1zL2VhenliYW5rZGV2IiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImUzODc2MzFiLWI0MjctNDZkNC1iMzEyLTI0OWQ0ZGQyNDJkYyIsInR5cCI6IkJlYXJlciIsImF6cCI6ImVhenliYW5rY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6ImUzN2MyZDBhLWM3NDItNDVjMC05NGQ5LTQzNmQ4ZTMzMjc4NCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsIkFETUlOIiwiVVNFUiIsImRlZmF1bHQtcm9sZXMtZWF6eWJhbmtkZXYiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwic2lkIjoiZTM3YzJkMGEtYzc0Mi00NWMwLTk0ZDktNDM2ZDhlMzMyNzg0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiIwIDEiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiIwQDEuY29tIiwiZ2l2ZW5fbmFtZSI6IjAiLCJmYW1pbHlfbmFtZSI6IjEiLCJlbWFpbCI6IjBAMS5jb20ifQ.FD7CxbwY7lfi5tnI05k_Uxa-7gbDt10DTKfjpC5m7Q55LWV4g3ftDKEXoyJ6bz1Kje-_dpwpOTiVuJoNnMuLz50ksG6APNIGkF35wGNtJx4GRALnn1p4MyW3HtY8j4Azg1HFJp0X6hJ20PenzKVGOa8A4LXUkTSLY3wzlYgDo0fuCy_wIQSVZriFXFVztk0wDSP6fKHF7Ve3Sn-Ndp3AEADiKbBIYfhhIMVug7fvqRMtiAceJ7xHJP59CsZxzaJmbzpullU2UhMjazwMU3KZglvsz8y3IGnQnO3GZM3cCui9prN6VMhQ2Bv89dlHD-CbEBbBv4thF_01ttxVQR_SRQ",
+								"description": "copy from previus step and send the get",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8888/myCards?email=0@1.com",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8888",
+							"path": [
+								"myCards"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "0@1.com"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Section 13 - Client Credential Grant Type",
+			"item": [
+				{
+					"name": "Client-Credntials-Keycloak-Auth-Server, step 1 is the post, step2 is the response",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "eazybankapi",
+									"type": "default"
+								},
+								{
+									"key": "client_secret",
+									"value": "MFIb7A5CPKHfUAhk4sr5OSPESnuOlQab",
+									"type": "default"
+								},
+								{
+									"key": "scope",
+									"value": "openid email profile address",
+									"type": "default"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "default"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8180/realms/eazybankdev/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8180",
+							"path": [
+								"realms",
+								"eazybankdev",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Client-Credentials-Resource-Server, step 3 is the post, step 4 is the response",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJGcXkyeDNCNl84b1c0WU92Z3VORVVodzlXcVhCYWk2QWNlRTVtTVhDSk5VIn0.eyJleHAiOjE2NzMwNDAwOTEsImlhdCI6MTY3MzAzOTc5MSwianRpIjoiZjU1NjFjNTMtODMwZC00NjgwLWFlOTAtZTdhYzAxNDJjYmM1IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgwL3JlYWxtcy9lYXp5YmFua2RldiIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1YTVmNWE5OS0wMmVlLTQyYWYtYmFhZS0zNTZjNGRiZDkzYzkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJlYXp5YmFua2FwaSIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsIkFETUlOIiwiVVNFUiIsImRlZmF1bHQtcm9sZXMtZWF6eWJhbmtkZXYiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIGFkZHJlc3MiLCJjbGllbnRIb3N0IjoiMTI3LjAuMC4xIiwiY2xpZW50SWQiOiJlYXp5YmFua2FwaSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiYWRkcmVzcyI6e30sInByZWZlcnJlZF91c2VybmFtZSI6InNlcnZpY2UtYWNjb3VudC1lYXp5YmFua2FwaSIsImNsaWVudEFkZHJlc3MiOiIxMjcuMC4wLjEifQ.MOgLG13PSQNXTUxWrVDf61Q_Njn5p4z2dPBAjXWyoi0kbLzfeYTfBkPHBG6J6_E96uBiwMBLp3phhZYSvtOvrwWhhWuQRA5_7eE31-jdVNGbsx4-DYeorv6rePlwS8MSQw2Tt5CMjhVlxPJBdS61npVM-ZStnCI4bMSOhFAlyEzrsAInWErDEZyrgetHJHEmPsbPd5uuhUAne-LRM521V5zMN34PWsc8L0fcgPuajdzePeUHM38nmD84qBFO4VU12IP5cIB-43TQfQNTAbMNhC1VQWXkFkk2zUM2yHL0rLmis_KyXlYf7CY5GvCaQYca7QBWxotMHpqRf8gsJgTBDA",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8888/myCards?email=0@1.com",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8888",
+							"path": [
+								"myCards"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "0@1.com"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Section 9/10 JWT",
+			"item": [
+				{
+					"name": "get a jwt",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic MEAxLmNvbToxMjM0NQ==",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8888/user",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8888",
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get my cards with jwt",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJFYXp5IEJhbmsiLCJzdWIiOiJKV1QgVG9rZW4iLCJ1c2VybmFtZSI6IjBAMS5jb20iLCJhdXRob3JpdGllcyI6IlZJRVdMT0FOUyxWSUVXQUNDT1VOVCxWSUVXQkFMQU5DRSxST0xFX1VTRVIsUk9MRV9BRE1JTixWSUVXQ0FSRFMiLCJpYXQiOjE2NzMxMjc5MjIsImV4cCI6MTY3MzEyOTcyMn0.HYVXXwX5H_nTu_OPHsc6SWnZJqsKJAc5kZ9qydyYD2s",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8888/myCards?id=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8888",
+							"path": [
+								"myCards"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Can use up to section 10 - create user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"John Doe2\",\n    \"email\": \"2@1.com\",\n    \"mobileNumber\": \"1234567890\",\n    \"pwd\": \"12345\",\n    \"role\": \"user\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8888/register",
+					"host": [
+						"localhost"
+					],
+					"port": "8888",
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Notices",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8888/notices",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8888",
+					"path": [
+						"notices"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -74,6 +74,7 @@ public class ProjectSecurityConfig {
         // ---------------------- Login Info ------------------------------
                 /// telling spring this will now act as an OAuth resource server
                 // it will receive access tokens in the form of JWT's
+                // uses the public key of the authorization server (local keycloak in this case) to verify requests
             .and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter);
         return http.build();
     }

@@ -38,8 +38,11 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
 
             // build the JWT based on the USER in the security context
             // can save any type of info, dont save the password
+            // gets roles  from db during the authentication process
             String jwt = Jwts.builder().setIssuer("Eazy Bank").setSubject("JWT Token")
                     .claim("username", authentication.getName())
+
+                    // account for the roles
                     .claim("authorities", populateAuthorities(authentication.getAuthorities()))
                     //issue date and expiration
                     .setIssuedAt(new Date())
